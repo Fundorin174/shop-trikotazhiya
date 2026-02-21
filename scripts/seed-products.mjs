@@ -7,7 +7,8 @@
  *
  * Требования:
  *   - Medusa бэкенд запущен на http://localhost:9000
- *   - Админ-пользователь создан (admin@trikotazhiya.ru / __ADMIN_PASSWORD__)
+ *   - Админ-пользователь создан (admin@trikotazhiya.ru)
+ *   - Переменные окружения ADMIN_EMAIL и ADMIN_PASSWORD заданы (или в .env)
  *
  * Что делает:
  *   1. Добавляет валюту RUB в Store
@@ -17,11 +18,17 @@
  *   5. Публикует все товары (status: published)
  */
 
-const BASE_URL = "http://localhost:9000";
-const ADMIN_EMAIL = "admin@trikotazhiya.ru";
-const ADMIN_PASSWORD = "__ADMIN_PASSWORD__";
-const SALES_CHANNEL_ID = "sc_01KJ04YBSSYPNWPJD73QP6H8YK";
-const STORE_ID = "store_01KJ04HZAANBA9DEENBR5PVGDN";
+const BASE_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@trikotazhiya.ru";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const SALES_CHANNEL_ID = process.env.SALES_CHANNEL_ID || "sc_01KJ04YBSSYPNWPJD73QP6H8YK";
+const STORE_ID = process.env.STORE_ID || "store_01KJ04HZAANBA9DEENBR5PVGDN";
+
+if (!ADMIN_PASSWORD) {
+  console.error("❌ Задайте ADMIN_PASSWORD через переменную окружения!");
+  console.error("   Пример: ADMIN_PASSWORD=your_password node scripts/seed-products.mjs");
+  process.exit(1);
+}
 
 // ===== Утилиты =====
 

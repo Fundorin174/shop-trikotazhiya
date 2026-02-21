@@ -1,7 +1,7 @@
 # Инструкция: создание товара в админке Medusa
 
 Админка доступна по адресу: **http://localhost:9000/app**  
-Логин: `admin@trikotazhiya.ru` / Пароль: `__ADMIN_PASSWORD__`
+Логин: `admin@trikotazhiya.ru` / Пароль: *задан при установке (см. .env)*
 
 ---
 
@@ -198,7 +198,7 @@ Metadata — это JSON-поля, в которых хранятся все х�
 Проверить, что инвентарь настроен правильно, можно запросом:
 
 ```powershell
-$h = @{ "x-publishable-api-key" = "pk_d9fa454634dc0b1e136c236d7c34e27db19942c2494a8143d762973ed7b57d8e" }
+$h = @{ "x-publishable-api-key" = $env:NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }
 $p = (Invoke-RestMethod -Uri "http://localhost:9000/store/products?handle=HANDLE_ТОВАРА&fields=*variants,*variants.inventory_quantity" -Headers $h).products[0]
 Write-Output "Quantity: $($p.variants[0].inventory_quantity)"
 ```

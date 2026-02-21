@@ -82,7 +82,7 @@ PostgreSQL 16 должен быть установлен и запущен ка�
 Get-Service postgresql-x64-16
 
 # Создать базу данных (одноразово)
-psql -U postgres -c "CREATE USER medusa WITH PASSWORD 'medusa_password';"
+psql -U postgres -c "CREATE USER medusa WITH PASSWORD '<ВАШ_ПАРОЛЬ_БД>';"
 psql -U postgres -c "CREATE DATABASE medusa_trikotazhiya OWNER medusa;"
 psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE medusa_trikotazhiya TO medusa;"
 ```
@@ -120,7 +120,7 @@ npx medusa db:migrate
 
 ```powershell
 cd backend
-npx medusa user -e admin@trikotazhiya.ru -p __ADMIN_PASSWORD__
+npx medusa user -e admin@trikotazhiya.ru -p <ВАШ_ПАРОЛЬ>
 ```
 
 ### 7. Запустить Backend (порт 9000)
@@ -152,7 +152,7 @@ npm run dev
 | ⚙️ Админка     | http://localhost:9000/app      |
 | 🩺 Health check| http://localhost:9000/health   |
 
-**Логин в админку:** `admin@trikotazhiya.ru` / `__ADMIN_PASSWORD__`
+**Логин в админку:** `admin@trikotazhiya.ru` / пароль задан при установке (см. `.env`)
 
 ---
 
@@ -216,7 +216,7 @@ docker-compose down -v
 # 1. Авторизоваться
 $auth = Invoke-RestMethod -Uri "http://localhost:9000/auth/user/emailpass" `
   -Method POST -ContentType "application/json" `
-  -Body '{"email":"admin@trikotazhiya.ru","password":"__ADMIN_PASSWORD__"}'
+  -Body '{"email":"admin@trikotazhiya.ru","password":"<ВАШ_ПАРОЛЬ>"}'
 $token = $auth.token
 $headers = @{ "Authorization"="Bearer $token"; "Content-Type"="application/json" }
 
@@ -337,7 +337,7 @@ shop-trikotazhiya/
 ### Доступ к админ-панели
 
 1. Откройте http://localhost:9000/app
-2. Введите логин `admin@trikotazhiya.ru` и пароль `__ADMIN_PASSWORD__`
+2. Введите логин `admin@trikotazhiya.ru` и пароль (заданный при установке)
 
 ### Полезные команды
 
