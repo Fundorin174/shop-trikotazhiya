@@ -1,6 +1,7 @@
 "use client";
 
-import { formatPrice, formatWidth, MEASUREMENT_UNITS } from "@/lib/utils";
+import { useState } from "react";
+import { formatPrice, formatWidth, MEASUREMENT_UNITS, MEASUREMENT_UNITS_FULL, MIN_CUT_METERS, CUT_STEP_METERS } from "@/lib/utils";
 import { FABRIC_TYPE_LABELS } from "@/types/product";
 import type { Product, FabricMetadata } from "@/types/product";
 
@@ -17,6 +18,32 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
   const variant = product.variants?.[0];
   const price = variant?.prices?.[0];
   const inStock = (variant?.inventory_quantity ?? 0) > 0;
+
+  // Параметры отреза из metadata (или дефолты)
+  const isFabric = meta?.measurement_unit === "running_meter";
+  const min = meta?.min_order ?? (isFabric ? MIN_CUT_METERS : 1);
+  const step = meta?.order_step ?? (isFabric ? CUT_STEP_METERS : 1);
+  const unitShort = MEASUREMENT_UNITS[meta?.measurement_unit || "running_meter"] || "пог. м";
+  const unitFull = MEASUREMENT_UNITS_FULL[meta?.measurement_unit || "running_meter"] || "метр погонный";
+  const maxQty = variant?.inventory_quantity ?? 0;
+
+  const [quantity, setQuantity] = useState(min);
+
+  const decrease = () => {
+    setQuantity((q) => {
+      const next = Math.round((q - step) * 10) / 10;
+      return next >= min ? next : q;
+    });
+  };
+
+  const increase = () => {
+    setQuantity((q) => {
+      const next = Math.round((q + step) * 10) / 10;
+      return next <= maxQty ? next : q;
+    });
+  };
+
+  const totalPrice = price ? Math.round(price.amount * quantity) : 0;
 
   return (
     <div className="space-y-6">
@@ -41,11 +68,9 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
           <span className="text-3xl font-bold text-primary-800">
             {formatPrice(price.amount, price.currency_code)}
           </span>
-          {meta?.measurement_unit && (
-            <span className="text-sm text-gray-500">
-              / {MEASUREMENT_UNITS[meta.measurement_unit] || meta.measurement_unit}
-            </span>
-          )}
+          <span className="text-sm text-gray-500">
+            / {unitShort}
+          </span>
         </div>
       )}
 
@@ -115,15 +140,75 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
         </dl>
       </div>
 
-      {/* Наличие + кнопка */}
+      {/* Наличие + выбор количества + кнопка */}
       <div className="space-y-4 border-t border-gray-200 pt-6">
         <p className={`text-sm font-medium ${inStock ? "text-primary-600" : "text-red-600"}`}>
           {inStock
-            ? `В наличии (${variant?.inventory_quantity} ${MEASUREMENT_UNITS[meta?.measurement_unit || "meter"] || "шт."})`
+            ? `В наличии (${variant?.inventory_quantity} ${unitShort})`
             : "Нет в наличии"}
         </p>
 
-        {/* TODO: выбор количества */}
+        {inStock && (
+          <div className="space-y-3">
+            {/* Селектор количества */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                {isFabric ? "Длина отреза" : "Количество"}
+                {isFabric && (
+                  <span className="ml-1 text-xs text-gray-400">(мин. {min} пог. м, шаг {step} пог. м)</span>
+                )}
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={decrease}
+                  disabled={quantity <= min}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-lg font-bold text-gray-600 transition hover:bg-gray-100 disabled:opacity-40"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  value={quantity}
+                  min={min}
+                  max={maxQty}
+                  step={step}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    if (!isNaN(v) && v >= min && v <= maxQty) {
+                      setQuantity(Math.round(v * 10) / 10);
+                    }
+                  }}
+                  className="h-10 w-20 rounded-lg border border-gray-300 text-center text-base font-medium focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-500">
+                  {unitShort}
+                </span>
+                <button
+                  type="button"
+                  onClick={increase}
+                  disabled={quantity >= maxQty}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-lg font-bold text-gray-600 transition hover:bg-gray-100 disabled:opacity-40"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Итого */}
+            {price && (
+              <div className="flex items-baseline justify-between rounded-lg bg-primary-50 px-4 py-3">
+                <span className="text-sm text-gray-600">
+                  {quantity} {unitShort} × {formatPrice(price.amount, price.currency_code)}
+                </span>
+                <span className="text-lg font-bold text-primary-800">
+                  = {formatPrice(totalPrice, price.currency_code)}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         <button
           disabled={!inStock}
           className="btn-primary w-full text-base"

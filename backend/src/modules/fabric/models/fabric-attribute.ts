@@ -27,18 +27,7 @@ const FabricAttribute = model.define("fabric_attribute", {
    * Допустимые значения: cotton, silk, wool, linen, knit, synthetic,
    * blend, viscose, polyester, other
    */
-  fabric_type: model.enum([
-    "cotton",     // Хлопок
-    "silk",       // Шёлк
-    "wool",       // Шерсть
-    "linen",      // Лён
-    "knit",       // Трикотаж
-    "synthetic",  // Синтетика
-    "blend",      // Смесовая
-    "viscose",    // Вискоза
-    "polyester",  // Полиэстер
-    "other",      // Прочее
-  ]),
+  fabric_type: model.text(),
 
   /** Состав ткани (н-р: "100% хлопок, 200г/м²") */
   composition: model.text(),
@@ -56,12 +45,7 @@ const FabricAttribute = model.define("fabric_attribute", {
    * Единица измерения.
    * meter — метр, running_meter — погонный метр, roll — рулон, cut — отрез
    */
-  measurement_unit: model.enum([
-    "meter",         // Метр
-    "running_meter", // Погонный метр
-    "roll",          // Рулон
-    "cut",           // Отрез
-  ]).default("meter"),
+  measurement_unit: model.text().default("meter"),
 
   /** Складской остаток (целое число) */
   stock_quantity: model.number().default(0),
@@ -108,10 +92,6 @@ const FabricAttribute = model.define("fabric_attribute", {
   supplier_data: model.hasOne(() => FabricSupplierData, {
     mappedBy: "fabric_attribute",
   }),
-
-  // ─── Timestamps ───
-  created_at: model.dateTime().default(() => new Date()),
-  updated_at: model.dateTime().default(() => new Date()),
 });
 
 /**
@@ -146,10 +126,6 @@ const FabricSupplierData = model.define("fabric_supplier_data", {
   fabric_attribute: model.belongsTo(() => FabricAttribute, {
     mappedBy: "supplier_data",
   }),
-
-  // ─── Timestamps ───
-  created_at: model.dateTime().default(() => new Date()),
-  updated_at: model.dateTime().default(() => new Date()),
 });
 
 export { FabricAttribute, FabricSupplierData };

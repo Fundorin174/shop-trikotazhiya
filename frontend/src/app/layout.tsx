@@ -57,7 +57,7 @@ export const metadata: Metadata = {
         follow: true,
     },
     metadataBase: new URL(
-        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001"
     ),
 };
 
@@ -75,7 +75,7 @@ export default function RootLayout({
                 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
                 <meta name="theme-color" content="#43C7CA" />
             </head>
-            <body className="flex min-h-screen flex-col font-sans">
+            <body className="flex min-h-screen flex-col font-sans" suppressHydrationWarning>
                 <Providers>
                     <Header />
                     <main className="flex-1">{children}</main>

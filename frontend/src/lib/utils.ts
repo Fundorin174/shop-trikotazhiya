@@ -61,11 +61,21 @@ export function truncate(text: string, maxLength: number): string {
 }
 
 /**
- * Единицы измерения — русские названия.
+ * Единицы измерения — краткие русские названия.
  */
 export const MEASUREMENT_UNITS: Record<string, string> = {
-  meter: "м (метр)",
   running_meter: "пог. м",
-  roll: "рулон",
-  cut: "отрез",
+  piece: "шт.",
 };
+
+/** Единицы измерения — полные названия */
+export const MEASUREMENT_UNITS_FULL: Record<string, string> = {
+  running_meter: "метр погонный",
+  piece: "штука",
+};
+
+/** Минимальный отрез в метрах */
+export const MIN_CUT_METERS = 0.5;
+
+/** Шаг отреза в метрах */
+export const CUT_STEP_METERS = 0.1;

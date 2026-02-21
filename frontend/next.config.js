@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Standalone-сборка для Docker (минимальный образ)
+  output: "standalone",
+
   // Оптимизация изображений — поддержка WebP/AVIF
   images: {
     remotePatterns: [

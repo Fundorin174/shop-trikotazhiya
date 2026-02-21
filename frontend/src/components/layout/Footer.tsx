@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { FABRIC_TYPE_LABELS } from "@/types/product";
 
 /**
  * Подвал сайта — навигация, контакты, копирайт.
@@ -35,13 +36,13 @@ export function Footer() {
           <div className="md:col-span-2">
             <h4 className="text-sm font-semibold text-gray-900">Каталог</h4>
             <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2">
-              {["Кулирка", "Футер", "Капитоний", "Кашкорсе", "Пике", "Рибана", "Интерлок", "Купоны с принтом", "Трикотажная вязка", "Термополотно", "Джерси", "Фурнитура"].map((t) => (
-                <li key={t}>
+              {Object.entries(FABRIC_TYPE_LABELS).map(([key, label]) => (
+                <li key={key}>
                   <Link
-                    href={`/catalog?type=${encodeURIComponent(t)}`}
+                    href={`/catalog?type=${encodeURIComponent(key)}`}
                     className="text-sm text-gray-600 hover:text-primary-700"
                   >
-                    {t}
+                    {label}
                   </Link>
                 </li>
               ))}

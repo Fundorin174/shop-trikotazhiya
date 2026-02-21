@@ -4,28 +4,32 @@ import { defineConfig, loadEnv } from "@medusajs/framework/utils";
 loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
 module.exports = defineConfig({
+  admin: {
+    // Добавляем @medusajs/admin-sdk в оптимизацию Vite,
+    // чтобы draft-order и другие модули могли его импортировать
+    vite: () => ({
+      optimizeDeps: {
+        include: ["@medusajs/admin-sdk"],
+      },
+    }),
+  },
   projectConfig: {
-    // URL бэкенда
-    backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:9000",
-
     // База данных PostgreSQL
     databaseUrl:
       process.env.DATABASE_URL ||
-      "postgres://medusa:medusa@localhost:5432/medusa_trikotazhiya",
+      "postgres://medusa:medusa_password@localhost:5432/medusa_trikotazhiya",
 
     // Redis для кеша, сессий и очередей
     redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
 
     // Настройки HTTP
     http: {
-      storeCors: process.env.STORE_CORS || "http://localhost:3000",
-      adminCors: process.env.ADMIN_CORS || "http://localhost:3000,http://localhost:9000",
-      authCors: process.env.AUTH_CORS || "http://localhost:3000,http://localhost:9000",
+      storeCors: process.env.STORE_CORS || "http://localhost:3001",
+      adminCors: process.env.ADMIN_CORS || "http://localhost:3001,http://localhost:9000",
+      authCors: process.env.AUTH_CORS || "http://localhost:3001,http://localhost:9000",
+      jwtSecret: process.env.JWT_SECRET || "supersecret-dev-only",
+      cookieSecret: process.env.COOKIE_SECRET || "supersecret-cookie-dev-only",
     },
-
-    // JWT-секрет для авторизации
-    jwtSecret: process.env.JWT_SECRET || "supersecret-dev-only",
-    cookieSecret: process.env.COOKIE_SECRET || "supersecret-cookie-dev-only",
   },
 
   // Подключённые модули
@@ -34,9 +38,6 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/fabric",
     },
-    // Кастомный платёжный провайдер ЮKassa (Пункт 4)
-    {
-      resolve: "./src/modules/yukassa",
-    },
+    // TODO: ЮKassa будет добавлен после реализации (Пункт 4)
   ],
 });

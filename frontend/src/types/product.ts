@@ -12,36 +12,38 @@
 
 /** Типы тканей */
 export type FabricType =
-  | "cotton"      // Хлопок
-  | "silk"        // Шёлк
-  | "wool"        // Шерсть
-  | "linen"       // Лён
-  | "knit"        // Трикотаж
-  | "synthetic"   // Синтетика
-  | "blend"       // Смесовая
-  | "viscose"     // Вискоза
-  | "polyester"   // Полиэстер
-  | "other";      // Прочее
+  | "kulirka"          // Кулирка
+  | "footer"           // Футер
+  | "kapitoniy"        // Капитоний
+  | "kashkorse"        // Кашкорсе
+  | "pike"             // Пике
+  | "ribana"           // Рибана
+  | "interlok"         // Интерлок
+  | "kupony"           // Купоны с принтом
+  | "trikotazh_vyazka" // Трикотажная вязка
+  | "termopolotno"     // Термополотно
+  | "dzhersi"          // Джерси
+  | "furnitura";       // Фурнитура
 
 /** Единицы измерения */
 export type MeasurementUnit =
-  | "meter"         // Метр
-  | "running_meter" // Погонный метр
-  | "roll"          // Рулон
-  | "cut";          // Отрез
+  | "running_meter" // Метр погонный (ткани)
+  | "piece";        // Штука (купоны, фурнитура)
 
 /** Русские названия типов тканей */
 export const FABRIC_TYPE_LABELS: Record<FabricType, string> = {
-  cotton: "Хлопок",
-  silk: "Шёлк",
-  wool: "Шерсть",
-  linen: "Лён",
-  knit: "Трикотаж",
-  synthetic: "Синтетика",
-  blend: "Смесовая",
-  viscose: "Вискоза",
-  polyester: "Полиэстер",
-  other: "Прочее",
+  kulirka: "Кулирка",
+  footer: "Футер",
+  kapitoniy: "Капитоний",
+  kashkorse: "Кашкорсе",
+  pike: "Пике",
+  ribana: "Рибана",
+  interlok: "Интерлок",
+  kupony: "Купоны с принтом",
+  trikotazh_vyazka: "Трикотажная вязка",
+  termopolotno: "Термополотно",
+  dzhersi: "Джерси",
+  furnitura: "Фурнитура",
 };
 
 // ============================================
@@ -124,6 +126,10 @@ export interface FabricMetadata {
   // Скидка
   discount_percent?: number;      // Размер скидки в %
   discount_amount?: number;       // Размер скидки в рублях
+
+  // Параметры отреза
+  min_order?: number;             // Мин. заказ (метры или штуки), по умолчанию 0.5
+  order_step?: number;            // Шаг отреза, по умолчанию 0.1
 
   // Приватные поля НЕ попадают в metadata на витрине —
   // они хранятся в отдельной таблице fabric_supplier_data (см. схему БД)

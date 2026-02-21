@@ -33,9 +33,9 @@ export async function RelatedProducts({
               className="product-card"
             >
               <div className="aspect-[4/5] overflow-hidden bg-gray-100">
-                {product.thumbnail && (
+                {(product.thumbnail || product.images?.[0]?.url) && (
                   <img
-                    src={product.thumbnail}
+                    src={product.thumbnail || product.images?.[0]?.url}
                     alt={product.title}
                     className="h-full w-full object-cover"
                     loading="lazy"

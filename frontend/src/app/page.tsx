@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getFeaturedProducts } from "@/lib/data/products";
+import { FABRIC_TYPE_LABELS } from "@/types/product";
 
 // SSR — главная страница рендерится на сервере для SEO
 export default async function HomePage() {
@@ -49,27 +50,14 @@ export default async function HomePage() {
             Категории тканей
           </h2>
           <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-            {[
-              "Кулирка",
-              "Футер",
-              "Капитоний",
-              "Кашкорсе",
-              "Пике",
-              "Рибана",
-              "Интерлок",
-              "Купоны с принтом",
-              "Трикотажная вязка",
-              "Термополотно",
-              "Джерси",
-              "Фурнитура",
-            ].map((category) => (
+            {Object.entries(FABRIC_TYPE_LABELS).map(([key, label]) => (
               <Link
-                key={category}
-                href={`/catalog?type=${encodeURIComponent(category)}`}
+                key={key}
+                href={`/catalog?type=${encodeURIComponent(key)}`}
                 className="flex flex-col items-center justify-center rounded-lg border border-gray-200 p-6 text-center transition-shadow hover:shadow-md"
               >
                 <span className="text-lg font-medium text-primary-800">
-                  {category}
+                  {label}
                 </span>
               </Link>
             ))}
@@ -96,9 +84,9 @@ export default async function HomePage() {
               <article key={product.id} className="product-card">
                 <Link href={`/products/${product.handle}`}>
                   <div className="aspect-[4/5] overflow-hidden bg-gray-100">
-                    {product.thumbnail && (
+                    {(product.thumbnail || product.images?.[0]?.url) && (
                       <img
-                        src={product.thumbnail}
+                        src={product.thumbnail || product.images?.[0]?.url}
                         alt={product.title}
                         className="h-full w-full object-cover transition-transform group-hover:scale-105"
                         loading="lazy"

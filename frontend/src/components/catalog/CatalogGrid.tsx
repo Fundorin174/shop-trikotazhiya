@@ -42,6 +42,7 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
           const variant = product.variants?.[0];
           const price = variant?.prices?.[0];
           const meta = product.metadata;
+          const imgSrc = product.thumbnail || product.images?.[0]?.url;
 
           return (
             <article key={product.id} className="product-card">
@@ -55,9 +56,9 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
               <Link href={`/products/${product.handle}`}>
                 {/* Изображение */}
                 <div className="aspect-[4/5] overflow-hidden bg-gray-100">
-                  {product.thumbnail ? (
+                  {imgSrc ? (
                     <img
-                      src={product.thumbnail}
+                      src={imgSrc}
                       alt={product.title}
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
                       loading="lazy"

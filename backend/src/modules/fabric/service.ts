@@ -1,6 +1,8 @@
 import { MedusaService } from "@medusajs/framework/utils";
 import { FabricAttribute, FabricSupplierData } from "./models";
 
+export type { FabricAttribute, FabricSupplierData };
+
 /**
  * ============================================
  * Сервис модуля Fabric

@@ -20,4 +20,11 @@
  *        fabric_attribute → fabric_supplier_data (1:1)
  */
 
-export { default as FabricModuleService } from "./service";
+import { Module } from "@medusajs/framework/utils";
+import FabricModuleService from "./service";
+
+export const FABRIC_MODULE = "fabric";
+
+export default Module(FABRIC_MODULE, {
+  service: FabricModuleService,
+});

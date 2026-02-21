@@ -1,5 +1,5 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
-import type FabricModuleService from "../../../../modules/fabric/service";
+import type FabricModuleService from "../../../modules/fabric/service";
 
 /**
  * ============================================

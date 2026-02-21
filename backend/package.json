@@ -11,13 +11,16 @@
     "user": "medusa user"
   },
   "dependencies": {
-    "@medusajs/medusa": "^2.0.0",
-    "@medusajs/framework": "^2.0.0",
+    "@medusajs/admin-sdk": "^2.13.1",
     "@medusajs/cli": "^2.0.0",
+    "@medusajs/framework": "^2.0.0",
+    "@medusajs/medusa": "^2.0.0",
+    "awilix": "^10.0.0",
     "pg": "^8.12.0",
     "redis": "^4.6.0",
-    "typeorm": "^0.3.20",
-    "awilix": "^10.0.0"
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
