@@ -40,7 +40,7 @@ sleep 10
 # 5. Создание admin-пользователя
 echo ""
 echo "=== Создание администратора ==="
-docker compose exec backend npx medusa user -e admin@trikotazhiya.ru -p admin123 || true
+docker compose exec backend npx medusa user -e admin@trikotazhiya.ru -p __ADMIN_PASSWORD__ || true
 
 echo ""
 echo "========================================="
@@ -51,5 +51,5 @@ echo "  Backend:   http://localhost:9000"
 echo "  Admin:     http://localhost:9000/app"
 echo "  Nginx:     http://localhost:80"
 echo ""
-echo "  Логин: admin@trikotazhiya.ru / admin123"
+echo "  Логин: admin@trikotazhiya.ru / __ADMIN_PASSWORD__"
 echo "========================================="

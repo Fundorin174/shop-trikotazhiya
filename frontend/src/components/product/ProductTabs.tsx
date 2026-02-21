@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Product, FabricMetadata } from "@/types/product";
+import { SafeHtml } from "@/components/ui/SafeHtml";
 
 interface ProductTabsProps {
   product: Product;
@@ -46,7 +47,12 @@ export function ProductTabs({ product, fabricData }: ProductTabsProps) {
       <div className="py-6">
         {activeTab === "description" && (
           <div className="prose max-w-none text-gray-700">
-            {meta?.full_description || product.description || (
+            {(meta?.full_description || product.description) ? (
+              <SafeHtml
+                html={String(meta?.full_description || product.description)}
+                className="product-description"
+              />
+            ) : (
               <p className="text-gray-400">Описание отсутствует</p>
             )}
 

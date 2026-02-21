@@ -4,6 +4,7 @@ import { useState } from "react";
 import { formatPrice, formatWidth, MEASUREMENT_UNITS, MEASUREMENT_UNITS_FULL, MIN_CUT_METERS, CUT_STEP_METERS } from "@/lib/utils";
 import { FABRIC_TYPE_LABELS } from "@/types/product";
 import type { Product, FabricMetadata } from "@/types/product";
+import { SafeHtml } from "@/components/ui/SafeHtml";
 
 interface ProductInfoProps {
   product: Product;
@@ -59,7 +60,11 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
 
       {/* Краткое описание */}
       {meta?.short_description && (
-        <p className="text-gray-600">{meta.short_description}</p>
+        <SafeHtml
+          html={String(meta.short_description)}
+          as="div"
+          className="text-gray-600"
+        />
       )}
 
       {/* Цена */}

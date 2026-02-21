@@ -120,7 +120,7 @@ npx medusa db:migrate
 
 ```powershell
 cd backend
-npx medusa user -e admin@trikotazhiya.ru -p admin123
+npx medusa user -e admin@trikotazhiya.ru -p __ADMIN_PASSWORD__
 ```
 
 ### 7. Запустить Backend (порт 9000)
@@ -152,7 +152,7 @@ npm run dev
 | ⚙️ Админка     | http://localhost:9000/app      |
 | 🩺 Health check| http://localhost:9000/health   |
 
-**Логин в админку:** `admin@trikotazhiya.ru` / `admin123`
+**Логин в админку:** `admin@trikotazhiya.ru` / `__ADMIN_PASSWORD__`
 
 ---
 
@@ -216,7 +216,7 @@ docker-compose down -v
 # 1. Авторизоваться
 $auth = Invoke-RestMethod -Uri "http://localhost:9000/auth/user/emailpass" `
   -Method POST -ContentType "application/json" `
-  -Body '{"email":"admin@trikotazhiya.ru","password":"admin123"}'
+  -Body '{"email":"admin@trikotazhiya.ru","password":"__ADMIN_PASSWORD__"}'
 $token = $auth.token
 $headers = @{ "Authorization"="Bearer $token"; "Content-Type"="application/json" }
 
@@ -337,7 +337,7 @@ shop-trikotazhiya/
 ### Доступ к админ-панели
 
 1. Откройте http://localhost:9000/app
-2. Введите логин `admin@trikotazhiya.ru` и пароль `admin123`
+2. Введите логин `admin@trikotazhiya.ru` и пароль `__ADMIN_PASSWORD__`
 
 ### Полезные команды
 

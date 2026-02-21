@@ -7,7 +7,7 @@
  *
  * Требования:
  *   - Medusa бэкенд запущен на http://localhost:9000
- *   - Админ-пользователь создан (admin@trikotazhiya.ru / admin123)
+ *   - Админ-пользователь создан (admin@trikotazhiya.ru / __ADMIN_PASSWORD__)
  *
  * Что делает:
  *   1. Добавляет валюту RUB в Store
@@ -19,7 +19,7 @@
 
 const BASE_URL = "http://localhost:9000";
 const ADMIN_EMAIL = "admin@trikotazhiya.ru";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_PASSWORD = "__ADMIN_PASSWORD__";
 const SALES_CHANNEL_ID = "sc_01KJ04YBSSYPNWPJD73QP6H8YK";
 const STORE_ID = "store_01KJ04HZAANBA9DEENBR5PVGDN";
 
