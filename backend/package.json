@@ -1,0 +1,26 @@
+{
+  "name": "shop-trikotazhiya-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "medusa develop",
+    "start": "medusa start",
+    "build": "medusa build",
+    "db:migrate": "medusa db:migrate",
+    "db:seed": "medusa db:seed",
+    "user": "medusa user"
+  },
+  "dependencies": {
+    "@medusajs/medusa": "^2.0.0",
+    "@medusajs/framework": "^2.0.0",
+    "@medusajs/cli": "^2.0.0",
+    "pg": "^8.12.0",
+    "redis": "^4.6.0",
+    "typeorm": "^0.3.20",
+    "awilix": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}
