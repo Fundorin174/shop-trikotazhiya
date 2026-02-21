@@ -67,6 +67,11 @@ export function Footer() {
                   Контакты
                 </Link>
               </li>
+              <li>
+                <Link href="/privacy" className="text-sm text-gray-600 hover:text-primary-700">
+                  Политика конфиденциальности
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -94,8 +99,21 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-gray-200 pt-6 text-center text-sm text-gray-500">
-          © {currentYear} Трикотажия. Все права защищены.
+        <div className="mt-10 border-t border-gray-200 pt-6">
+          <div className="text-center text-xs text-gray-500 space-y-1">
+            <p>© {currentYear} Трикотажия. Все права защищены.</p>
+            <p>
+              ИП Сенькевич Людмила Викторовна &middot; ИНН: 366109122621
+            </p>
+            <p>
+              394036, г.&nbsp;Воронеж, ул.&nbsp;Кольцовская, д.&nbsp;68
+            </p>
+            <p className="mt-2">
+              <Link href="/privacy" className="text-gray-500 underline hover:text-primary-700">
+                Политика конфиденциальности
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

@@ -40,7 +40,7 @@ export function Header() {
           </Link>
 
           {/* Навигация — десктоп */}
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav aria-label="Основная навигация" className="hidden items-center gap-8 md:flex">
             {navigation.map((item) => (
               <Link
                 key={item.href}
@@ -87,7 +87,7 @@ export function Header() {
 
         {/* Мобильное меню */}
         {mobileMenuOpen && (
-          <nav className="border-t border-gray-200 py-4 md:hidden">
+          <nav aria-label="Мобильная навигация" className="border-t border-gray-200 py-4 md:hidden">
             {navigation.map((item) => (
               <Link
                 key={item.href}

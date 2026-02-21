@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers/Providers";
+import { CookieConsent } from "@/components/common/CookieConsent";
 
 // Шрифты — подгружаются локально через next/font (без внешних CDN)
 const inter = Inter({
@@ -79,6 +80,7 @@ export default function RootLayout({
                     <Header />
                     <main className="flex-1">{children}</main>
                     <Footer />
+                    <CookieConsent />
                 </Providers>
             </body>
         </html>
