@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getProductsList } from "@/lib/data/products";
 import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
+import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
 import type { ProductFilters } from "@/types/product";
 import { FABRIC_TYPE_LABELS, type FabricType } from "@/types/product";
 
@@ -99,9 +100,7 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
                       sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-gray-400">
-                      Нет фото
-                    </div>
+                    <FabricPlaceholder />
                   )}
                 </div>
 

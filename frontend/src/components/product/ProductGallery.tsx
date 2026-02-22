@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { ProductImage } from "@/types/product";
+import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
 
 interface ProductGalleryProps {
   images: ProductImage[];
@@ -30,8 +31,8 @@ export function ProductGallery({
 
   if (allImages.length === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-lg bg-gray-100 text-gray-400">
-        Нет фото
+      <div className="aspect-square overflow-hidden rounded-lg">
+        <FabricPlaceholder />
       </div>
     );
   }

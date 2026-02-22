@@ -1,5 +1,6 @@
 import { getRelatedProducts } from "@/lib/data/products";
 import { formatPrice } from "@/lib/utils";
+import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
 import Link from "next/link";
 
 interface RelatedProductsProps {
@@ -33,13 +34,15 @@ export async function RelatedProducts({
               className="product-card"
             >
               <div className="aspect-[4/5] overflow-hidden bg-gray-100">
-                {(product.thumbnail || product.images?.[0]?.url) && (
+                {(product.thumbnail || product.images?.[0]?.url) ? (
                   <img
                     src={product.thumbnail || product.images?.[0]?.url}
                     alt={product.title}
                     className="h-full w-full object-cover"
                     loading="lazy"
                   />
+                ) : (
+                  <FabricPlaceholder />
                 )}
               </div>
               <div className="p-4">

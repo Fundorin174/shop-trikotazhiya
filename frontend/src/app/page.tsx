@@ -4,6 +4,7 @@ import { getFeaturedProducts } from "@/lib/data/products";
 import { FABRIC_TYPE_LABELS } from "@/types/product";
 import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import { SafeHtml } from "@/components/ui/SafeHtml";
+import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
 
 // SSR — главная страница рендерится на сервере для SEO
 export default async function HomePage() {
@@ -115,7 +116,7 @@ export default async function HomePage() {
 
                   <Link href={`/products/${product.handle}`}>
                     <div className="aspect-[4/5] overflow-hidden bg-gray-100">
-                      {(product.thumbnail || product.images?.[0]?.url) && (
+                      {(product.thumbnail || product.images?.[0]?.url) ? (
                         <Image
                           src={product.thumbnail || product.images![0]!.url}
                           alt={product.title}
@@ -124,6 +125,8 @@ export default async function HomePage() {
                           className="h-full w-full object-cover transition-transform group-hover:scale-105"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         />
+                      ) : (
+                        <FabricPlaceholder />
                       )}
                     </div>
                     <div className="p-4">

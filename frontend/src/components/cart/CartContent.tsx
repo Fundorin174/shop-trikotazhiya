@@ -6,6 +6,7 @@ import { Trash2, Minus, Plus } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { formatPrice, cmToMeters, metersToCm, pricePerCmToPerMeter, CM_PER_METER, MIN_CUT_METERS, CUT_STEP_METERS } from "@/lib/utils";
 import type { MedusaCartLineItem } from "@/lib/data/cart";
+import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
 
 /** Проверить, является ли позиция тканью (погонные метры). */
 function isFabricItem(item: MedusaCartLineItem): boolean {
@@ -74,9 +75,7 @@ export function CartContent() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-gray-400">
-                    Нет фото
-                  </div>
+                  <FabricPlaceholder />
                 )}
               </div>
 
