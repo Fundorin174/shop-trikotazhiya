@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getProductsList } from "@/lib/data/products";
 import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import type { ProductFilters } from "@/types/product";
@@ -91,11 +92,13 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
                 {/* Изображение */}
                 <div className="aspect-[4/5] overflow-hidden bg-gray-100">
                   {imgSrc ? (
-                    <img
+                    <Image
                       src={imgSrc}
                       alt={product.title}
+                      width={400}
+                      height={500}
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                      loading="lazy"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-gray-400">

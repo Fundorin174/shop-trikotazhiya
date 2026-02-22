@@ -6,6 +6,15 @@
    Глобальные стили магазина тканей
    ============================================ */
 
+/* Корпоративный шрифт вывески */
+@font-face {
+  font-family: "Appetite";
+  src: url("/fonts/appetite.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --color-background: 255 255 255;

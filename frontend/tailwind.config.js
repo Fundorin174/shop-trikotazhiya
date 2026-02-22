@@ -41,6 +41,7 @@ module.exports = {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         heading: ["Playfair Display", "Georgia", "serif"],
+        brand: ["Appetite", "Playfair Display", "Georgia", "cursive"],
       },
       maxWidth: {
         "8xl": "88rem",

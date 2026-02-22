@@ -34,7 +34,7 @@ export function Header() {
           {/* Логотип */}
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-2 font-heading text-xl font-bold text-primary-800"
+            className="flex shrink-0 items-center gap-2 text-primary-800"
           >
             <Image
               src="/logo-64.png"
@@ -44,7 +44,7 @@ export function Header() {
               className="shrink-0 rounded-full"
               priority
             />
-            <span className="hidden xs:inline">Трикотажия</span>
+            <span className="hidden font-brand text-2xl font-normal xs:inline">Трикотажия</span>
           </Link>
 
           {/* Навигация — десктоп */}

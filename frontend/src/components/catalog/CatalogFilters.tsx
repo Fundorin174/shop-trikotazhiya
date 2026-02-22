@@ -65,20 +65,23 @@ export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
         <legend className="mb-3 text-sm font-medium text-gray-900">
           Тип ткани
         </legend>
-        <div className="space-y-2">
-          {Object.entries(FABRIC_TYPE_LABELS).map(([value, label]) => (
-            <label key={value} className="flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                name="type"
-                value={value}
-                checked={currentFilters.type === value}
-                onChange={() => updateFilter("type", value)}
-                className="text-primary-600"
-              />
-              {label}
-            </label>
-          ))}
+        <div className="flex flex-wrap gap-2 lg:flex-col">
+          {Object.entries(FABRIC_TYPE_LABELS).map(([value, label]) => {
+            const isActive = currentFilters.type === value;
+            return (
+              <button
+                key={value}
+                onClick={() => updateFilter("type", isActive ? null : value)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  isActive
+                    ? "border-primary-500 bg-primary-500 text-white shadow-sm"
+                    : "border-gray-300 bg-white text-gray-600 hover:border-primary-300 hover:text-primary-700"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </fieldset>
 

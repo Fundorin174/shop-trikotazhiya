@@ -25,7 +25,7 @@ export default function AboutPage() {
       <section className="text-center">
         <h1 className="font-heading text-4xl font-bold tracking-tight text-primary-900 sm:text-5xl">
           Добро пожаловать в{" "}
-          <span className="text-accent-600">«Трикотажию»</span>
+          <span className="font-brand text-[1.15em] font-normal text-accent-600">«Трикотажию»</span>
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
           Интернет-магазин тканей и трикотажа с доставкой по всей России
@@ -364,7 +364,7 @@ export default function AboutPage() {
       {/* ── Футер-цитата ── */}
       <section className="mt-16 text-center">
         <p className="font-heading text-2xl font-bold text-primary-900">
-          🪡 Трикотажия — страна, где сшиваются мечты!
+          🪡 <span className="font-brand text-3xl font-normal">Трикотажия</span> — страна, где сшиваются мечты!
         </p>
         <p className="mt-3 text-gray-600">
           Желаем вам творческого вдохновения, точных строчек и одежды, в которой

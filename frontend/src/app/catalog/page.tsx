@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { CatalogSkeleton } from "@/components/catalog/CatalogSkeleton";
+import { MobileFilterPanel } from "@/components/catalog/MobileFilterPanel";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -26,15 +27,29 @@ interface CatalogPageProps {
 }
 
 export default function CatalogPage({ searchParams }: CatalogPageProps) {
+  const hasActiveFilters = !!(
+    searchParams.type ||
+    searchParams.min_price ||
+    searchParams.max_price ||
+    searchParams.width_min ||
+    searchParams.width_max ||
+    searchParams.sort
+  );
+
   return (
     <div className="container-shop py-8">
       <h1 className="font-heading text-3xl font-bold text-primary-900">
         Каталог тканей
       </h1>
 
+      {/* Кнопка фильтров — мобильная, sticky, вне grid */}
+      <MobileFilterPanel hasActiveFilters={hasActiveFilters}>
+        <CatalogFilters currentFilters={searchParams} />
+      </MobileFilterPanel>
+
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
-        {/* Боковая панель фильтров */}
-        <aside>
+        {/* Боковая панель фильтров — только десктоп */}
+        <aside className="hidden lg:block">
           <CatalogFilters currentFilters={searchParams} />
         </aside>
 

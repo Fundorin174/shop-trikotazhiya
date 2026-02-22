@@ -23,7 +23,7 @@ export function Footer() {
                 height={48}
                 className="rounded-full"
               />
-              <h3 className="font-heading text-lg font-bold text-primary-800">
+              <h3 className="font-brand text-2xl text-primary-800">
                 Трикотажия
               </h3>
             </div>

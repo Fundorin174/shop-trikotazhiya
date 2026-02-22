@@ -19,10 +19,19 @@ export interface PaginatedProducts {
   limit: number;
 }
 
+/** Ответ от /store/products/sorted */
+interface SortedProductsResponse {
+  products: Product[];
+  count: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
 /**
- * Получить список товаров с фильтрами и серверной пагинацией.
- * Фильтрация по metadata (type, price, width) выполняется в Node,
- * поэтому загружаем все товары из Medusa, фильтруем и пагинируем.
+ * Получить список товаров с фильтрами, сортировкой и пагинацией.
+ * Вся логика (включая сортировку по цене) выполняется на бэкенде
+ * через кастомный endpoint GET /store/products/sorted.
  */
 export async function getProductsList(
   filters: ProductFilters = {},
@@ -30,86 +39,28 @@ export async function getProductsList(
 ): Promise<PaginatedProducts> {
   const limit = filters.limit ? Number(filters.limit) : PRODUCTS_LIMIT;
 
-  const params = new URLSearchParams({
-    limit: "100",
-    offset: "0",
-    fields: PRODUCT_FIELDS,
-  });
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  params.set("page", String(page));
 
-  // Фильтры каталога (collection — серверный фильтр Medusa)
-  if (filters.collection) params.set("collection_id", filters.collection);
-  if (filters.sort) {
-    // Формат: "price_asc", "title_desc", "created_at_desc"
-    const [field, order] = filters.sort.split("_");
-    params.set("order", `${order === "desc" ? "-" : ""}${field}`);
-  }
+  if (filters.type) params.set("type", filters.type);
+  if (filters.sort) params.set("sort", filters.sort);
+  if (filters.min_price) params.set("min_price", filters.min_price);
+  if (filters.max_price) params.set("max_price", filters.max_price);
+  if (filters.width_min) params.set("width_min", filters.width_min);
+  if (filters.width_max) params.set("width_max", filters.width_max);
 
   try {
-    const data = await medusaFetch<ProductListResponse>(
-      `/store/products?${params.toString()}`
+    const data = await medusaFetch<SortedProductsResponse>(
+      `/store/products/sorted?${params.toString()}`
     );
 
-    let products = data.products;
-
-    // fabric_type хранится в metadata — фильтруем на клиенте
-    if (filters.type) {
-      products = products.filter(
-        (p) => p.metadata?.fabric_type === filters.type
-      );
-    }
-
-    // Фильтрация по цене (price.amount = руб, фильтр вводится в руб)
-    if (filters.min_price) {
-      const min = Number(filters.min_price);
-      if (!isNaN(min)) {
-        products = products.filter((p) => {
-          const price = p.variants?.[0]?.prices?.[0]?.amount;
-          return price != null && price >= min;
-        });
-      }
-    }
-    if (filters.max_price) {
-      const max = Number(filters.max_price);
-      if (!isNaN(max)) {
-        products = products.filter((p) => {
-          const price = p.variants?.[0]?.prices?.[0]?.amount;
-          return price != null && price <= max;
-        });
-      }
-    }
-
-    // Фильтрация по ширине (metadata.width_cm = см, фильтр вводится в см)
-    if (filters.width_min) {
-      const min = Number(filters.width_min);
-      if (!isNaN(min)) {
-        products = products.filter((p) => {
-          const w = Number(p.metadata?.width_cm);
-          return !isNaN(w) && w >= min;
-        });
-      }
-    }
-    if (filters.width_max) {
-      const max = Number(filters.width_max);
-      if (!isNaN(max)) {
-        products = products.filter((p) => {
-          const w = Number(p.metadata?.width_cm);
-          return !isNaN(w) && w <= max;
-        });
-      }
-    }
-
-    const total = products.length;
-    const totalPages = Math.max(1, Math.ceil(total / limit));
-    const safePage = Math.min(Math.max(1, page), totalPages);
-    const offset = (safePage - 1) * limit;
-    const paginatedProducts = products.slice(offset, offset + limit);
-
     return {
-      products: paginatedProducts,
-      total,
-      page: safePage,
-      totalPages,
-      limit,
+      products: data.products,
+      total: data.count,
+      page: data.page,
+      totalPages: data.totalPages,
+      limit: data.limit,
     };
   } catch (error) {
     console.error("[getProductsList] Failed to fetch products:", error);
