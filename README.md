@@ -237,6 +237,10 @@ docker-compose down -v
 | `STORE_CORS`   | `http://localhost:3001`                                             | Разрешённые CORS-домены (витрина)  |
 | `ADMIN_CORS`   | `http://localhost:3001,http://localhost:9000`                       | Разрешённые CORS-домены (админка)  |
 | `AUTH_CORS`    | `http://localhost:3001,http://localhost:9000`                       | Разрешённые CORS-домены (авторизация)|
+| `CDEK_CLIENT_ID` | —                                                               | Client ID СДЭК API v2 ([получить](https://lk.cdek.ru)) |
+| `CDEK_CLIENT_SECRET` | —                                                           | Client Secret СДЭК API v2          |
+| `CDEK_BASE_URL` | `https://api.edu.cdek.ru/v2`                                      | URL СДЭК API (тест / прод)         |
+| `CDEK_FROM_CITY_CODE` | `44` (Москва)                                               | Код города отправления СДЭК         |
 
 > ⚠️ **Для продакшена** обязательно задайте уникальные `JWT_SECRET` и `COOKIE_SECRET`.
 
