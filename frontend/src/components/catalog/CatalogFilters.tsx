@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FABRIC_TYPE_LABELS, type FabricType } from "@/types/product";
+import { FABRIC_TYPE_LABELS, COLOR_OPTIONS, type FabricType } from "@/types/product";
 
 interface CatalogFiltersProps {
   currentFilters: Record<string, string | undefined>;
@@ -19,16 +19,25 @@ export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
   // Локальное состояние инпутов — синхронизируется с URL
   const [minPrice, setMinPrice] = useState(currentFilters.min_price ?? "");
   const [maxPrice, setMaxPrice] = useState(currentFilters.max_price ?? "");
-  const [widthMin, setWidthMin] = useState(currentFilters.width_min ?? "");
-  const [widthMax, setWidthMax] = useState(currentFilters.width_max ?? "");
+  const [colorOpen, setColorOpen] = useState(false);
+  const colorRef = useRef<HTMLDivElement>(null);
+
+  // Закрытие dropdown при клике вне
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (colorRef.current && !colorRef.current.contains(e.target as Node)) {
+        setColorOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Синхронизация при изменении URL (в т.ч. при сбросе)
   useEffect(() => {
     setMinPrice(currentFilters.min_price ?? "");
     setMaxPrice(currentFilters.max_price ?? "");
-    setWidthMin(currentFilters.width_min ?? "");
-    setWidthMax(currentFilters.width_max ?? "");
-  }, [currentFilters.min_price, currentFilters.max_price, currentFilters.width_min, currentFilters.width_max]);
+  }, [currentFilters.min_price, currentFilters.max_price]);
 
   /** Обновить фильтр — добавляет/меняет параметр в URL */
   function updateFilter(key: string, value: string | null) {
@@ -85,6 +94,94 @@ export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
         </div>
       </fieldset>
 
+      {/* Цвет */}
+      <fieldset>
+        <legend className="mb-3 text-sm font-medium text-gray-900">
+          Цвет
+        </legend>
+        <div ref={colorRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setColorOpen((v) => !v)}
+            className="flex w-full items-center justify-between rounded border bg-white px-3 py-2 text-sm text-gray-700 hover:border-gray-400"
+          >
+            <span className="flex items-center gap-2">
+              {currentFilters.color ? (
+                <>
+                  <span
+                    className={`inline-block h-3 w-3 rounded-full${
+                      ["#FFFFFF", "#FFFDD0", "#F5F5DC", "#98FF98"].includes(
+                        COLOR_OPTIONS.find((c) => c.name === currentFilters.color)?.hex || ""
+                      )
+                        ? " border border-gray-300"
+                        : ""
+                    }`}
+                    style={{
+                      backgroundColor:
+                        COLOR_OPTIONS.find((c) => c.name === currentFilters.color)?.hex || "#ccc",
+                    }}
+                  />
+                  {currentFilters.color}
+                </>
+              ) : (
+                "Все цвета"
+              )}
+            </span>
+            <svg
+              className={`h-4 w-4 text-gray-400 transition-transform ${colorOpen ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {colorOpen && (
+            <ul className="mt-1 max-h-60 w-full overflow-auto rounded border border-gray-200 bg-white py-1 shadow-lg">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateFilter("color", null);
+                    setColorOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${
+                    !currentFilters.color ? "font-medium text-primary-700 bg-primary-50" : "text-gray-700"
+                  }`}
+                >
+                  Все цвета
+                </button>
+              </li>
+              {COLOR_OPTIONS.map(({ name, hex }) => {
+                const isActive = currentFilters.color === name;
+                const isLight = ["#FFFFFF", "#FFFDD0", "#F5F5DC", "#98FF98"].includes(hex);
+                return (
+                  <li key={name}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateFilter("color", isActive ? null : name);
+                        setColorOpen(false);
+                      }}
+                      className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 ${
+                        isActive ? "font-medium text-primary-700 bg-primary-50" : "text-gray-700"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3 w-3 rounded-full${isLight ? " border border-gray-300" : ""}`}
+                        style={{ backgroundColor: hex }}
+                      />
+                      {name}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </fieldset>
+
       {/* Цена */}
       <fieldset>
         <legend className="mb-3 text-sm font-medium text-gray-900">
@@ -107,33 +204,6 @@ export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
             onChange={(e) => setMaxPrice(e.target.value)}
             onBlur={(e) => updateFilter("max_price", e.target.value || null)}
             onKeyDown={(e) => { if (e.key === "Enter") updateFilter("max_price", (e.target as HTMLInputElement).value || null); }}
-            className="w-full rounded border px-3 py-2 text-sm"
-          />
-        </div>
-      </fieldset>
-
-      {/* Ширина */}
-      <fieldset>
-        <legend className="mb-3 text-sm font-medium text-gray-900">
-          Ширина, см
-        </legend>
-        <div className="flex gap-2">
-          <input
-            type="number"
-            placeholder="от"
-            value={widthMin}
-            onChange={(e) => setWidthMin(e.target.value)}
-            onBlur={(e) => updateFilter("width_min", e.target.value || null)}
-            onKeyDown={(e) => { if (e.key === "Enter") updateFilter("width_min", (e.target as HTMLInputElement).value || null); }}
-            className="w-full rounded border px-3 py-2 text-sm"
-          />
-          <input
-            type="number"
-            placeholder="до"
-            value={widthMax}
-            onChange={(e) => setWidthMax(e.target.value)}
-            onBlur={(e) => updateFilter("width_max", e.target.value || null)}
-            onKeyDown={(e) => { if (e.key === "Enter") updateFilter("width_max", (e.target as HTMLInputElement).value || null); }}
             className="w-full rounded border px-3 py-2 text-sm"
           />
         </div>

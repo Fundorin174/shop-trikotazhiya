@@ -2,6 +2,67 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 import { loadAllProducts } from "../product-cache";
 
+// ── Вспомогательные функции для «умного» сравнения цветов ──
+
+/** Маппинг нормализованных названий цветов → hex */
+const COLOR_HEX_MAP: Record<string, string> = {
+  "белый": "#FFFFFF",
+  "молочный": "#FFFDD0",
+  "бежевый": "#F5F5DC",
+  "пудровый": "#E8C4C4",
+  "мятный": "#98FF98",
+  "серый меланж": "#B0B0B0",
+  "серебристый": "#C0C0C0",
+  "графитовый": "#383838",
+  "темно-синий": "#1B1B6F",
+  "изумрудный": "#50C878",
+  "мультиколор": "#FF69B4",
+  "черный": "#000000",
+};
+
+/** Нормализация названия: нижний регистр, ё → е, trim */
+const normalizeColorName = (s: string): string =>
+  s.toLowerCase().replace(/ё/g, "е").trim();
+
+/** Парсинг hex-строки в RGB-тройку */
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  return [
+    parseInt(h.substring(0, 2), 16),
+    parseInt(h.substring(2, 4), 16),
+    parseInt(h.substring(4, 6), 16),
+  ];
+}
+
+/**
+ * Евклидово расстояние между двумя цветами в RGB-пространстве.
+ * 0 = идентичны, ~441 = максимально далёкие (чёрный ↔ белый).
+ */
+function colorDistance(hex1: string, hex2: string): number {
+  try {
+    const [r1, g1, b1] = hexToRgb(hex1);
+    const [r2, g2, b2] = hexToRgb(hex2);
+    return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+  } catch {
+    return Infinity;
+  }
+}
+
+/**
+ * Порог «близости» цвета: ~50 из 441 ≈ 11 % спектра.
+ *
+ * Что попадает:
+ *   • #000000 ↔ #1A1A1A (расст. ≈ 45)  — тёмные вариации чёрного ✓
+ *   • #383838 ↔ #303030 (расст. ≈ 14)  — оттенки графита ✓
+ *   • #B0B0B0 ↔ #C0C0C0 (расст. ≈ 28)  — серый ≈ серебристый ✓
+ *
+ * Что НЕ попадает:
+ *   • #000000 ↔ #383838 (расст. ≈ 97)  — чёрный ≠ графитовый ✗
+ *   • #FFFFFF ↔ #FFFDD0 (расст. ≈ 48)  — белый ≠ молочный ✗
+ *   • #1B1B6F ↔ #000000 (расст. ≈ 117) — синий ≠ чёрный ✗
+ */
+const COLOR_DISTANCE_THRESHOLD = 50;
+
 /**
  * GET /store/products/sorted
  *
@@ -22,6 +83,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const {
     sort,
     type,
+    color,
     min_price,
     max_price,
     width_min,
@@ -42,6 +104,27 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
   if (type) {
     products = products.filter((p) => p.metadata?.fabric_type === type);
+  }
+
+  if (color) {
+    const targetName = normalizeColorName(color);
+    const targetHex = COLOR_HEX_MAP[targetName];
+
+    products = products.filter((p) => {
+      if (!p.metadata) return false;
+
+      // 1) Точное совпадение по названию цвета (ё/е, регистр игнорируются)
+      if (p.metadata.color && normalizeColorName(p.metadata.color) === targetName) {
+        return true;
+      }
+
+      // 2) Fallback: близость hex-кодов (для товаров с иным названием, но похожим оттенком)
+      if (targetHex && p.metadata.color_hex) {
+        return colorDistance(targetHex, p.metadata.color_hex) <= COLOR_DISTANCE_THRESHOLD;
+      }
+
+      return false;
+    });
   }
 
   if (min_price) {

@@ -44,11 +44,10 @@ export async function getProductsList(
   params.set("page", String(page));
 
   if (filters.type) params.set("type", filters.type);
+  if (filters.color) params.set("color", filters.color);
   if (filters.sort) params.set("sort", filters.sort);
   if (filters.min_price) params.set("min_price", filters.min_price);
   if (filters.max_price) params.set("max_price", filters.max_price);
-  if (filters.width_min) params.set("width_min", filters.width_min);
-  if (filters.width_max) params.set("width_max", filters.width_max);
 
   try {
     const data = await medusaFetch<SortedProductsResponse>(

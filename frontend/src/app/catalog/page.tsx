@@ -18,8 +18,6 @@ interface CatalogPageProps {
     color?: string;
     min_price?: string;
     max_price?: string;
-    width_min?: string;
-    width_max?: string;
     collection?: string;
     sort?: string;
     page?: string;
@@ -29,10 +27,9 @@ interface CatalogPageProps {
 export default function CatalogPage({ searchParams }: CatalogPageProps) {
   const hasActiveFilters = !!(
     searchParams.type ||
+    searchParams.color ||
     searchParams.min_price ||
     searchParams.max_price ||
-    searchParams.width_min ||
-    searchParams.width_max ||
     searchParams.sort
   );
 

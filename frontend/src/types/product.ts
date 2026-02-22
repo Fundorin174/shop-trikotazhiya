@@ -46,6 +46,22 @@ export const FABRIC_TYPE_LABELS: Record<FabricType, string> = {
   furnitura: "Фурнитура",
 };
 
+/** Доступные цвета для фильтра (название → hex код) */
+export const COLOR_OPTIONS: { name: string; hex: string }[] = [
+  { name: "Белый", hex: "#FFFFFF" },
+  { name: "Молочный", hex: "#FFFDD0" },
+  { name: "Бежевый", hex: "#F5F5DC" },
+  { name: "Пудровый", hex: "#E8C4C4" },
+  { name: "Серебристый", hex: "#C0C0C0" },
+  { name: "Серый меланж", hex: "#B0B0B0" },
+  { name: "Мятный", hex: "#98FF98" },
+  { name: "Мультиколор", hex: "#FF69B4" },
+  { name: "Изумрудный", hex: "#50C878" },
+  { name: "Графитовый", hex: "#383838" },
+  { name: "Тёмно-синий", hex: "#1B1B6F" },
+  { name: "Чёрный", hex: "#000000" },
+];
+
 // ============================================
 // Основная модель товара
 // ============================================
@@ -152,8 +168,6 @@ export interface ProductFilters {
   color?: string;
   min_price?: string;
   max_price?: string;
-  width_min?: string;
-  width_max?: string;
   collection?: string;
   sort?: string;
   page?: string;

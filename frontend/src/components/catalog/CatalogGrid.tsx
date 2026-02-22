@@ -18,8 +18,6 @@ function buildPageUrl(filters: ProductFilters, targetPage: number): string {
   if (filters.color) params.set("color", filters.color);
   if (filters.min_price) params.set("min_price", filters.min_price);
   if (filters.max_price) params.set("max_price", filters.max_price);
-  if (filters.width_min) params.set("width_min", filters.width_min);
-  if (filters.width_max) params.set("width_max", filters.width_max);
   if (filters.collection) params.set("collection", filters.collection);
   if (filters.sort) params.set("sort", filters.sort);
   if (targetPage > 1) params.set("page", String(targetPage));
