@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FABRIC_TYPE_LABELS, type FabricType } from "@/types/product";
 
@@ -14,6 +15,20 @@ interface CatalogFiltersProps {
 export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Локальное состояние инпутов — синхронизируется с URL
+  const [minPrice, setMinPrice] = useState(currentFilters.min_price ?? "");
+  const [maxPrice, setMaxPrice] = useState(currentFilters.max_price ?? "");
+  const [widthMin, setWidthMin] = useState(currentFilters.width_min ?? "");
+  const [widthMax, setWidthMax] = useState(currentFilters.width_max ?? "");
+
+  // Синхронизация при изменении URL (в т.ч. при сбросе)
+  useEffect(() => {
+    setMinPrice(currentFilters.min_price ?? "");
+    setMaxPrice(currentFilters.max_price ?? "");
+    setWidthMin(currentFilters.width_min ?? "");
+    setWidthMax(currentFilters.width_max ?? "");
+  }, [currentFilters.min_price, currentFilters.max_price, currentFilters.width_min, currentFilters.width_max]);
 
   /** Обновить фильтр — добавляет/меняет параметр в URL */
   function updateFilter(key: string, value: string | null) {
@@ -76,15 +91,19 @@ export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
           <input
             type="number"
             placeholder="от"
-            defaultValue={currentFilters.min_price}
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
             onBlur={(e) => updateFilter("min_price", e.target.value || null)}
+            onKeyDown={(e) => { if (e.key === "Enter") updateFilter("min_price", (e.target as HTMLInputElement).value || null); }}
             className="w-full rounded border px-3 py-2 text-sm"
           />
           <input
             type="number"
             placeholder="до"
-            defaultValue={currentFilters.max_price}
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
             onBlur={(e) => updateFilter("max_price", e.target.value || null)}
+            onKeyDown={(e) => { if (e.key === "Enter") updateFilter("max_price", (e.target as HTMLInputElement).value || null); }}
             className="w-full rounded border px-3 py-2 text-sm"
           />
         </div>
@@ -99,15 +118,19 @@ export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
           <input
             type="number"
             placeholder="от"
-            defaultValue={currentFilters.width_min}
+            value={widthMin}
+            onChange={(e) => setWidthMin(e.target.value)}
             onBlur={(e) => updateFilter("width_min", e.target.value || null)}
+            onKeyDown={(e) => { if (e.key === "Enter") updateFilter("width_min", (e.target as HTMLInputElement).value || null); }}
             className="w-full rounded border px-3 py-2 text-sm"
           />
           <input
             type="number"
             placeholder="до"
-            defaultValue={currentFilters.width_max}
+            value={widthMax}
+            onChange={(e) => setWidthMax(e.target.value)}
             onBlur={(e) => updateFilter("width_max", e.target.value || null)}
+            onKeyDown={(e) => { if (e.key === "Enter") updateFilter("width_max", (e.target as HTMLInputElement).value || null); }}
             className="w-full rounded border px-3 py-2 text-sm"
           />
         </div>

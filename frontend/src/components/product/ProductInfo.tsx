@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { formatPrice, formatWidth, MEASUREMENT_UNITS, MEASUREMENT_UNITS_FULL, MIN_CUT_METERS, CUT_STEP_METERS, cmToMeters, metersToCm, pricePerCmToPerMeter } from "@/lib/utils";
+import { formatPrice, formatWidth, MEASUREMENT_UNITS, MEASUREMENT_UNITS_FULL, MIN_CUT_METERS, CUT_STEP_METERS, cmToMeters, metersToCm, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import { FABRIC_TYPE_LABELS } from "@/types/product";
 import type { Product, FabricMetadata } from "@/types/product";
 import { SafeHtml } from "@/components/ui/SafeHtml";
@@ -147,6 +147,11 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
       {/* Цена */}
       {price && (
         <div className="flex items-baseline gap-3">
+          {meta?.discount_percent && meta.discount_percent > 0 && (
+            <span className="text-xl text-gray-400 line-through">
+              {formatPrice(originalPrice(pricePerUnit, meta.discount_percent), price.currency_code)}
+            </span>
+          )}
           <span className="text-3xl font-bold text-primary-800">
             {formatPrice(pricePerUnit, price.currency_code)}
           </span>

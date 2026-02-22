@@ -112,3 +112,12 @@ export function pricePerCmToPerMeter(pricePerCm: number): number {
 export function pricePerMeterToPerCm(pricePerMeter: number): number {
   return Math.round(pricePerMeter / CM_PER_METER);
 }
+
+/**
+ * Рассчитать цену без скидки (старую цену).
+ * Текущая цена уже со скидкой → original = current / (1 - discount/100).
+ */
+export function originalPrice(discountedPrice: number, discountPercent: number): number {
+  if (discountPercent <= 0 || discountPercent >= 100) return discountedPrice;
+  return Math.round(discountedPrice / (1 - discountPercent / 100));
+}

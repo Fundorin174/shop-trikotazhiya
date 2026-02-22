@@ -5,23 +5,34 @@
 import { medusaFetch } from "@/lib/medusa-client";
 import type { Product, ProductListResponse, ProductFilters } from "@/types/product";
 
-const PRODUCTS_LIMIT = 20;
+const PRODUCTS_LIMIT = 12;
 
 /** Поля для запроса — включаем variants с ценами, наличием, изображениями и metadata */
 const PRODUCT_FIELDS = "*variants,*variants.prices,*variants.inventory_quantity,*images,*metadata";
 
+/** Результат пагинированного списка */
+export interface PaginatedProducts {
+  products: Product[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
 /**
- * Получить список товаров с фильтрами и пагинацией.
+ * Получить список товаров с фильтрами и серверной пагинацией.
+ * Фильтрация по metadata (type, price, width) выполняется в Node,
+ * поэтому загружаем все товары из Medusa, фильтруем и пагинируем.
  */
 export async function getProductsList(
   filters: ProductFilters = {},
   page = 1
-): Promise<Product[]> {
-  const offset = (page - 1) * PRODUCTS_LIMIT;
+): Promise<PaginatedProducts> {
+  const limit = filters.limit ? Number(filters.limit) : PRODUCTS_LIMIT;
 
   const params = new URLSearchParams({
-    limit: String(filters.limit || PRODUCTS_LIMIT),
-    offset: String(offset),
+    limit: "100",
+    offset: "0",
     fields: PRODUCT_FIELDS,
   });
 
@@ -47,10 +58,62 @@ export async function getProductsList(
       );
     }
 
-    return products;
+    // Фильтрация по цене (price.amount = руб, фильтр вводится в руб)
+    if (filters.min_price) {
+      const min = Number(filters.min_price);
+      if (!isNaN(min)) {
+        products = products.filter((p) => {
+          const price = p.variants?.[0]?.prices?.[0]?.amount;
+          return price != null && price >= min;
+        });
+      }
+    }
+    if (filters.max_price) {
+      const max = Number(filters.max_price);
+      if (!isNaN(max)) {
+        products = products.filter((p) => {
+          const price = p.variants?.[0]?.prices?.[0]?.amount;
+          return price != null && price <= max;
+        });
+      }
+    }
+
+    // Фильтрация по ширине (metadata.width_cm = см, фильтр вводится в см)
+    if (filters.width_min) {
+      const min = Number(filters.width_min);
+      if (!isNaN(min)) {
+        products = products.filter((p) => {
+          const w = Number(p.metadata?.width_cm);
+          return !isNaN(w) && w >= min;
+        });
+      }
+    }
+    if (filters.width_max) {
+      const max = Number(filters.width_max);
+      if (!isNaN(max)) {
+        products = products.filter((p) => {
+          const w = Number(p.metadata?.width_cm);
+          return !isNaN(w) && w <= max;
+        });
+      }
+    }
+
+    const total = products.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const offset = (safePage - 1) * limit;
+    const paginatedProducts = products.slice(offset, offset + limit);
+
+    return {
+      products: paginatedProducts,
+      total,
+      page: safePage,
+      totalPages,
+      limit,
+    };
   } catch (error) {
     console.error("[getProductsList] Failed to fetch products:", error);
-    return [];
+    return { products: [], total: 0, page: 1, totalPages: 1, limit };
   }
 }
 
@@ -73,12 +136,12 @@ export async function getProductByHandle(
 
 /**
  * Получить «рекомендуемые» товары для главной страницы.
- * Выбираем из коллекции "featured" или последние добавленные.
+ * Бэкенд сортирует: сначала со скидкой (по убыванию %), затем остальные.
  */
 export async function getFeaturedProducts(): Promise<Product[]> {
   try {
     const data = await medusaFetch<ProductListResponse>(
-      `/store/products?limit=8&order=-created_at&fields=${PRODUCT_FIELDS}`
+      `/store/products/featured?limit=8`
     );
     return data.products;
   } catch {

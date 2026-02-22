@@ -1,10 +1,29 @@
 import Link from "next/link";
 import { getProductsList } from "@/lib/data/products";
-import { formatPrice, pricePerCmToPerMeter } from "@/lib/utils";
+import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import type { ProductFilters } from "@/types/product";
+import { FABRIC_TYPE_LABELS, type FabricType } from "@/types/product";
 
 interface CatalogGridProps {
   filters: ProductFilters;
+}
+
+/**
+ * Формирует URL для страницы пагинации, сохраняя текущие фильтры.
+ */
+function buildPageUrl(filters: ProductFilters, targetPage: number): string {
+  const params = new URLSearchParams();
+  if (filters.type) params.set("type", filters.type);
+  if (filters.color) params.set("color", filters.color);
+  if (filters.min_price) params.set("min_price", filters.min_price);
+  if (filters.max_price) params.set("max_price", filters.max_price);
+  if (filters.width_min) params.set("width_min", filters.width_min);
+  if (filters.width_max) params.set("width_max", filters.width_max);
+  if (filters.collection) params.set("collection", filters.collection);
+  if (filters.sort) params.set("sort", filters.sort);
+  if (targetPage > 1) params.set("page", String(targetPage));
+  const qs = params.toString();
+  return `/catalog${qs ? `?${qs}` : ""}`;
 }
 
 /**
@@ -13,7 +32,8 @@ interface CatalogGridProps {
  */
 export async function CatalogGrid({ filters }: CatalogGridProps) {
   const page = Number(filters.page) || 1;
-  const products = await getProductsList(filters, page);
+  const { products, total, page: currentPage, totalPages } =
+    await getProductsList(filters, page);
 
   if (products.length === 0) {
     return (
@@ -31,9 +51,24 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
 
   return (
     <div>
+      {/* Заголовок активного фильтра */}
+      {filters.type && (
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {FABRIC_TYPE_LABELS[filters.type as FabricType] ?? filters.type}
+          </h2>
+          <Link
+            href="/catalog"
+            className="rounded-md bg-gray-100 px-3 py-1 text-sm text-accent-600 transition-colors hover:bg-gray-200"
+          >
+            Показать все
+          </Link>
+        </div>
+      )}
+
       {/* Количество результатов */}
       <p className="mb-4 text-sm text-gray-500">
-        Найдено: {products.length} товаров
+        Найдено: {total} товаров
       </p>
 
       {/* Сетка карточек */}
@@ -43,14 +78,13 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
           const price = variant?.prices?.[0];
           const meta = product.metadata;
           const imgSrc = product.thumbnail || product.images?.[0]?.url;
+          const discount = Number(meta?.discount_percent) || 0;
 
           return (
             <article key={product.id} className="product-card">
               {/* Бейдж скидки */}
-              {meta?.discount_percent && meta.discount_percent > 0 && (
-                <span className="badge-discount">
-                  -{meta.discount_percent}%
-                </span>
+              {discount > 0 && (
+                <span className="badge-discount">-{discount}%</span>
               )}
 
               <Link href={`/products/${product.handle}`}>
@@ -76,7 +110,7 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
                     {product.title}
                   </h3>
 
-                  {/* Тип ткани + состав */}
+                  {/* Состав */}
                   {meta?.composition && (
                     <p className="mt-1 text-xs text-gray-500">
                       {meta.composition}
@@ -91,17 +125,22 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
                   )}
 
                   {/* Цена */}
-                  {price && (
-                    <p className="mt-2 text-base font-semibold text-primary-800">
-                      {formatPrice(
-                        pricePerCmToPerMeter(price.amount),
-                        price.currency_code
-                      )}
-                      <span className="ml-1 text-xs font-normal text-gray-500">
-                        / {meta?.measurement_unit === "running_meter" ? "пог. м" : "шт."}
-                      </span>
-                    </p>
-                  )}
+                  {price && (() => {
+                    const currentPrice = pricePerCmToPerMeter(price.amount);
+                    return (
+                      <p className="mt-2 text-base font-semibold text-primary-800">
+                        {discount > 0 && (
+                          <span className="mr-2 text-sm font-normal text-gray-400 line-through">
+                            {formatPrice(originalPrice(currentPrice, discount), price.currency_code)}
+                          </span>
+                        )}
+                        {formatPrice(currentPrice, price.currency_code)}
+                        <span className="ml-1 text-xs font-normal text-gray-500">
+                          / {meta?.measurement_unit === "running_meter" ? "пог. м" : "шт."}
+                        </span>
+                      </p>
+                    );
+                  })()}
                 </div>
               </Link>
             </article>
@@ -109,7 +148,53 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
         })}
       </div>
 
-      {/* TODO: пагинация */}
+      {/* Пагинация */}
+      {totalPages > 1 && (
+        <nav className="mt-8 flex items-center justify-center gap-2" aria-label="Навигация по страницам">
+          {/* Назад */}
+          {currentPage > 1 ? (
+            <Link
+              href={buildPageUrl(filters, currentPage - 1)}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
+            >
+              ← Назад
+            </Link>
+          ) : (
+            <span className="rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-300">
+              ← Назад
+            </span>
+          )}
+
+          {/* Номера страниц */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <Link
+              key={p}
+              href={buildPageUrl(filters, p)}
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                p === currentPage
+                  ? "bg-primary-700 text-white"
+                  : "border border-gray-300 text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {p}
+            </Link>
+          ))}
+
+          {/* Вперёд */}
+          {currentPage < totalPages ? (
+            <Link
+              href={buildPageUrl(filters, currentPage + 1)}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
+            >
+              Вперёд →
+            </Link>
+          ) : (
+            <span className="rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-300">
+              Вперёд →
+            </span>
+          )}
+        </nav>
+      )}
     </div>
   );
 }
