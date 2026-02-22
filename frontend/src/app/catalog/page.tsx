@@ -8,7 +8,10 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Каталог тканей",
   description:
-    "Каталог тканей: хлопок, шёлк, шерсть, лён, трикотаж. Фильтры по типу, цвету, ширине и цене.",
+    "Каталог тканей: кулирка, футер, интерлок, кашкорсе, рибана, капитоний. Фильтры по типу, цвету и цене. Доставка по России.",
+  alternates: {
+    canonical: "/catalog",
+  },
 };
 
 // searchParams передаются через пропсы в App Router

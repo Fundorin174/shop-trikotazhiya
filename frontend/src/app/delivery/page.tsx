@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Доставка и оплата",
-  description: "Доставка по всей России через СДЭК и Ozon. Оплата по QR-коду, реквизитам, СБП или наличными при самовывозе.",
+  description: "Доставка тканей по всей России через СДЭК и Ozon. Оплата по QR-коду, реквизитам, СБП или наличными при самовывозе.",
+  alternates: {
+    canonical: "/delivery",
+  },
 };
 
 export default function DeliveryPage() {

@@ -81,17 +81,17 @@ export function Footer() {
             <h4 className="text-sm font-semibold text-gray-900">Контакты</h4>
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
               <li>
-                <a href="https://t.me/+79952510289" target="_blank" rel="noopener noreferrer" className="hover:text-primary-700">
+                <a href="https://t.me/+79952510289" target="_blank" rel="noopener noreferrer nofollow" className="hover:text-primary-700">
                   Telegram: +7 995 251 0289
                 </a>
               </li>
               <li>
-                <a href="https://vk.com/trikotazhiya" target="_blank" rel="noopener noreferrer" className="hover:text-primary-700">
+                <a href="https://vk.com/trikotazhiya" target="_blank" rel="noopener noreferrer nofollow" className="hover:text-primary-700">
                   VK: vk.com/trikotazhiya
                 </a>
               </li>
               <li>
-                <a href="https://www.avito.ru/brands/cff114170b691efe16204d49f026adf4/all/mebel_i_interer?sellerId=33a3412fa8c101adca4a626cb532ba52" target="_blank" rel="noopener noreferrer" className="hover:text-primary-700">
+                <a href="https://www.avito.ru/brands/cff114170b691efe16204d49f026adf4/all/mebel_i_interer?sellerId=33a3412fa8c101adca4a626cb532ba52" target="_blank" rel="noopener noreferrer nofollow" className="hover:text-primary-700">
                   Авито: Трикотажия
                 </a>
               </li>

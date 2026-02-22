@@ -5,6 +5,9 @@ import { Map2gis } from "@/components/contacts/Map2gis";
 export const metadata: Metadata = {
     title: "Контакты",
     description: "Магазин тканей Трикотажия: г. Воронеж, ул. Кольцовская, 68. Telegram: +7 995 251 0289.",
+    alternates: {
+        canonical: "/contacts",
+    },
 };
 
 export default function ContactsPage() {
@@ -25,7 +28,7 @@ export default function ContactsPage() {
                             <a
                                 href="https://t.me/+79952510289"
                                 target="_blank"
-                                rel="noopener noreferrer"
+                                rel="noopener noreferrer nofollow"
                                 className="font-medium text-accent-600 hover:underline"
                             >
                                 +7 995 251 0289
@@ -36,7 +39,7 @@ export default function ContactsPage() {
                             <a
                                 href="https://t.me/trikotazhiya"
                                 target="_blank"
-                                rel="noopener noreferrer"
+                                rel="noopener noreferrer nofollow"
                                 className="font-medium text-accent-600 hover:underline"
                             >
                                 t.me/trikotazhiya
@@ -47,7 +50,7 @@ export default function ContactsPage() {
                             <a
                                 href="https://vk.com/trikotazhiya"
                                 target="_blank"
-                                rel="noopener noreferrer"
+                                rel="noopener noreferrer nofollow"
                                 className="font-medium text-accent-600 hover:underline"
                             >
                                 vk.com/trikotazhiya
@@ -59,7 +62,7 @@ export default function ContactsPage() {
                             <a
                                 href="https://www.avito.ru/brands/cff114170b691efe16204d49f026adf4/all/mebel_i_interer?sellerId=33a3412fa8c101adca4a626cb532ba52"
                                 target="_blank"
-                                rel="noopener noreferrer"
+                                rel="noopener noreferrer nofollow"
                                 className="font-medium text-accent-600 hover:underline"
                             >
                                 Трикотажия на Авито
@@ -101,7 +104,7 @@ export default function ContactsPage() {
                     <a
                         href="https://2gis.ru/voronezh/firm/70000001104133513"
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noopener noreferrer nofollow"
                         className="font-medium text-accent-600 hover:underline"
                     >
                         открыть в 2ГИС

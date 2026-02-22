@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers/Providers";
 import { CookieConsent } from "@/components/common/CookieConsent";
+import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 
 // Шрифты — подгружаются локально через next/font (без внешних CDN)
 const inter = Inter({
@@ -51,10 +52,39 @@ export const metadata: Metadata = {
         type: "website",
         locale: "ru_RU",
         siteName: "Трикотажия",
+        images: [
+            {
+                url: "/og-default.png",
+                width: 1200,
+                height: 630,
+                alt: "Трикотажия — Интернет-магазин тканей",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Трикотажия — Интернет-магазин тканей",
+        description: "Широкий ассортимент трикотажных тканей. Доставка по всей России.",
+        images: ["/og-default.png"],
+    },
+    alternates: {
+        canonical: "/",
     },
     robots: {
         index: true,
         follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+        },
+    },
+    verification: {
+        // Добавьте коды верификации, когда зарегистрируете сайт:
+        // google: "ваш-код-google-search-console",
+        // yandex: "ваш-код-яндекс-вебмастер",
     },
     metadataBase: new URL(
         process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001"
@@ -74,11 +104,20 @@ export default function RootLayout({
                 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
                 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
                 <meta name="theme-color" content="#43C7CA" />
+                <link rel="preconnect" href={process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"} />
+                <link rel="dns-prefetch" href="https://widgets.2gis.com" />
             </head>
             <body className="flex min-h-screen flex-col font-sans" suppressHydrationWarning>
+                <a
+                    href="#main-content"
+                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none"
+                >
+                    Перейти к содержимому
+                </a>
+                <OrganizationJsonLd />
                 <Providers>
                     <Header />
-                    <main className="flex-1">{children}</main>
+                    <main id="main-content" className="flex-1">{children}</main>
                     <Footer />
                     <CookieConsent />
                 </Providers>

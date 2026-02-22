@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   title: "О магазине",
   description:
     "Трикотажия — интернет-магазин тканей и трикотажа с доставкой по всей России. Хлопок, футер, интерлок, кулирка, жаккард и уникальные купонные принты.",
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 export default function AboutPage() {
@@ -284,7 +287,7 @@ export default function AboutPage() {
               <a
                 href="https://t.me/+79952510289"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer nofollow"
                 className="font-medium text-accent-600 hover:underline"
               >
                 Telegram
@@ -313,7 +316,7 @@ export default function AboutPage() {
           <a
             href="https://vk.com/trikotazhiya"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer nofollow"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary-400 px-8 py-3 font-semibold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-500"
           >
             VK: vk.com/trikotazhiya
@@ -333,7 +336,7 @@ export default function AboutPage() {
           <a
             href="https://www.avito.ru/brands/cff114170b691efe16204d49f026adf4/all/mebel_i_interer?sellerId=33a3412fa8c101adca4a626cb532ba52"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer nofollow"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary-600 px-8 py-3 font-semibold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-700"
           >
             Наш магазин на Авито
@@ -353,7 +356,7 @@ export default function AboutPage() {
         <a
           href="https://t.me/trikotazhiya"
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer nofollow"
           className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 font-semibold text-primary-700 shadow-md transition-transform hover:scale-105"
         >
           <Send className="h-4 w-4" />

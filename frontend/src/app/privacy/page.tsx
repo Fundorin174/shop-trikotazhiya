@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Политика конфиденциальности",
   description:
     "Политика обработки персональных данных интернет-магазина Трикотажия. Соответствие 152-ФЗ.",
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {
