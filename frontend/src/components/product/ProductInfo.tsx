@@ -25,8 +25,12 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
   // Параметры отреза из metadata (или дефолты)
   const isFabric = meta?.measurement_unit === "running_meter";
 
-  // --- Конверсии: в админке ВСЕ цены в рублях, formatPrice() ожидает копейки → ×100 ---
-  const pricePerUnit = price ? pricePerCmToPerMeter(price.amount) : 0;
+  // --- Цены в Medusa в копейках (minor units) ---
+  // Ткани: amount = копейки/см → умножаем на 100 для копейки/метр
+  // Штучные: amount = копейки → используем как есть
+  const pricePerUnit = price
+    ? (isFabric ? pricePerCmToPerMeter(price.amount) : price.amount)
+    : 0;
   const maxQtyMeters = isFabric ? cmToMeters(variant?.inventory_quantity ?? 0) : (variant?.inventory_quantity ?? 0);
 
   const min = meta?.min_order ?? (isFabric ? MIN_CUT_METERS : 1);

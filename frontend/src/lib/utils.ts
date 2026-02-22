@@ -13,7 +13,10 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Форматирование цены в рублях.
- * Medusa хранит цены в копейках (minor units).
+ *
+ * Все суммы в Medusa хранятся в копейках (minor units для RUB).
+ * Ткани: amount = копейки/см (450 → 4.50₽/см = 450₽/м).
+ * Штучные: amount = копейки (52000 → 520₽).
  */
 export function formatPrice(amount: number, currency = "RUB"): string {
   return new Intl.NumberFormat("ru-RU", {

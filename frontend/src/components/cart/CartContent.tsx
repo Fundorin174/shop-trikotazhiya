@@ -16,9 +16,11 @@ function isFabricItem(item: MedusaCartLineItem): boolean {
 /**
  * Содержимое страницы корзины.
  *
- * Для тканей: quantity в БД хранится в сантиметрах, отображается в метрах.
- * unit_price в БД — цена за 1 см, отображается цена за 1 метр.
- * Medusa считает total = unit_price × quantity — это корректно в см.
+ * Все суммы в Medusa — в копейках (minor units).
+ * Ткани: quantity в БД в сантиметрах, отображается в метрах.
+ *        unit_price = копейки/см → отображается цена за 1 метр.
+ *        total = unit_price × qty_cm → уже в копейках.
+ * Штучные: unit_price = копейки, total = unit_price × qty → копейки.
  */
 export function CartContent() {
   const { items, total, loading, refreshCart, updateItem, removeItem, productImages } =
@@ -51,14 +53,15 @@ export function CartContent() {
           const fabric = isFabricItem(item);
           // Для тканей: переводим из см в метры для отображения
           const displayQty = fabric ? cmToMeters(item.quantity) : item.quantity;
-          // Цена за единицу: в админке в рублях, formatPrice ждёт копейки → ×100
-          const displayUnitPrice = pricePerCmToPerMeter(item.unit_price ?? 0);
+          // Цена за единицу: в копейках (minor units)
+          // Ткани: unit_price = копейки/см → ×100 для копейки/метр
+          // Штучные: unit_price = копейки → как есть
+          const displayUnitPrice = fabric
+            ? pricePerCmToPerMeter(item.unit_price ?? 0)
+            : (item.unit_price ?? 0);
           const unitLabel = fabric ? "пог. м" : "шт.";
-          // Стоимость позиции:
-          // Ткани — Medusa total уже корректен (unit_price × qty_cm = рубли × см → kopecks)
-          // Штучные — Medusa total в рублях (unit_price_руб × qty), нужно ×100 для kopecks
-          const rawTotal = item.total ?? item.subtotal ?? (item.unit_price ?? 0) * (item.quantity ?? 1);
-          const lineTotal = fabric ? rawTotal : rawTotal * 100;
+          // Стоимость позиции: всегда в копейках (unit_price × qty)
+          const lineTotal = item.total ?? item.subtotal ?? (item.unit_price ?? 0) * (item.quantity ?? 1);
 
           // Шаг/мин для тканей (в см для API)
           const stepCm = metersToCm(CUT_STEP_METERS); // 10 см

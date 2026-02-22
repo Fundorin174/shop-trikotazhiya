@@ -126,7 +126,10 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
 
                   {/* Цена */}
                   {price && (() => {
-                    const currentPrice = pricePerCmToPerMeter(price.amount);
+                    const isFabric = meta?.measurement_unit === "running_meter";
+                    const currentPrice = isFabric
+                      ? pricePerCmToPerMeter(price.amount)
+                      : price.amount;
                     return (
                       <p className="mt-2 text-base font-semibold text-primary-800">
                         {discount > 0 && (

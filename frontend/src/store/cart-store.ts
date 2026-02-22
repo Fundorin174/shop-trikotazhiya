@@ -35,14 +35,12 @@ interface CartState {
 
 function cartToState(cart: MedusaCart) {
   const items = cart.items ?? [];
-  // В админке ВСЕ цены в рублях. Для formatPrice() нужны копейки.
-  // Ткани: Medusa total = price_руб × qty_см → уже в копейках (рубли × 100).
-  // Штучные: Medusa total = price_руб × qty_шт → в рублях → нужно ×100.
+  // Все цены в Medusa — в копейках (minor units).
+  // total = unit_price (копейки) × quantity → уже в копейках.
   let total = 0;
   for (const item of items) {
     const lt = item.total ?? item.subtotal ?? (item.unit_price ?? 0) * (item.quantity ?? 1);
-    const isFabric = item.metadata?.measurement_unit === "running_meter";
-    total += isFabric ? lt : lt * 100;
+    total += lt;
   }
   return {
     items,

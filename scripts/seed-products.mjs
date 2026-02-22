@@ -300,7 +300,7 @@ const PRODUCTS = [
       color_hex: "#FF69B4",
       discount_percent: 15,
     },
-    price: 520, // 520 ₽/шт. (все цены в рублях)
+    price: 52000, // 520 ₽/шт. = 52000 копеек (Medusa хранит в minor units)
     sku: "TK-KUP-008",
     inventory: 80, // 80 штук
   },
@@ -400,7 +400,7 @@ const PRODUCTS = [
       color: "Серебристый",
       color_hex: "#C0C0C0",
     },
-    price: 150, // 150 ₽/шт. (все цены в рублях)
+    price: 15000, // 150 ₽/шт. = 15000 копеек (Medusa хранит в minor units)
     sku: "TK-FUR-012",
     inventory: 500, // 500 штук
   },
@@ -502,6 +502,26 @@ async function setupInventory(product, quantity) {
 
 // ===== MAIN =====
 
+/**
+ * Удалить товары по handle (для пересоздания с новыми ценами).
+ */
+async function deleteProductsByHandles(handles) {
+  const existing = await api("GET", "/admin/products?limit=100");
+  if (!existing?.products) return;
+
+  for (const product of existing.products) {
+    if (handles.includes(product.handle)) {
+      const delRes = await api("DELETE", `/admin/products/${product.id}`);
+      if (delRes !== null) {
+        console.log(`  🗑️  Удалён: ${product.title} (${product.handle})`);
+      } else {
+        console.warn(`  ⚠️  Не удалось удалить: ${product.title}`);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+}
+
 async function main() {
   console.log("🚀 Seed-скрипт: создание тестовых товаров\n");
 
@@ -511,7 +531,16 @@ async function main() {
   // 2. Настройка Store + Регион
   const regionId = await setupStoreAndRegion();
 
-  // 3. Проверка существующих товаров
+  // 3. Удаление штучных товаров для пересоздания с правильными ценами (kopecks)
+  const pieceHandles = PRODUCTS
+    .filter((p) => p.metadata.measurement_unit === "piece")
+    .map((p) => p.handle);
+  if (pieceHandles.length > 0) {
+    console.log(`\n🔄 Удаляю ${pieceHandles.length} штучных товаров для пересоздания...`);
+    await deleteProductsByHandles(pieceHandles);
+  }
+
+  // 5. Проверка существующих товаров
   const existing = await api("GET", "/admin/products?limit=100");
   if (existing && existing.count > 0) {
     console.log(`\n⚠️  В базе уже есть ${existing.count} товаров.`);
@@ -526,7 +555,7 @@ async function main() {
     var toCreate = PRODUCTS;
   }
 
-  // 4. Создание товаров
+  // 6. Создание товаров
   console.log(`\n🏭 Создаю ${toCreate.length} товаров...\n`);
 
   let created = 0;

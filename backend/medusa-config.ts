@@ -38,6 +38,25 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/fabric",
     },
-    // TODO: ЮKassa будет добавлен после реализации (Пункт 4)
+    // Payment Module с провайдером ЮKassa
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/yukassa",
+            id: "yukassa",
+            options: {
+              shopId: process.env.YUKASSA_SHOP_ID || "",
+              secretKey: process.env.YUKASSA_SECRET_KEY || "",
+              webhookSecret: process.env.YUKASSA_WEBHOOK_SECRET || "",
+              returnUrl:
+                process.env.YUKASSA_RETURN_URL ||
+                "http://localhost:3001/checkout/success",
+            },
+          },
+        ],
+      },
+    },
   ],
 });

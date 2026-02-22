@@ -79,6 +79,22 @@ const COLOR_DISTANCE_THRESHOLD = 50;
  *   ?limit=12             — количество на странице
  *   ?page=1               — номер страницы
  */
+
+/**
+ * Отображаемая цена товара в рублях.
+ *
+ * Все amount в Medusa — в копейках (minor units).
+ * Ткани: amount = копейки/см → числовое значение = рубли/метр (совпадение: ×100/÷100).
+ * Штучные: amount = копейки → ÷100 для рублей.
+ */
+function displayPriceRubles(product: Record<string, any>): number | null {
+  const amount = product.variants?.[0]?.prices?.[0]?.amount;
+  if (amount == null) return null;
+  const isFabric = product.metadata?.measurement_unit === "running_meter"
+    || !product.metadata?.measurement_unit;
+  return isFabric ? amount : amount / 100;
+}
+
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const {
     sort,
@@ -131,7 +147,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const min = Number(min_price);
     if (!isNaN(min)) {
       products = products.filter((p) => {
-        const price = p.variants?.[0]?.prices?.[0]?.amount;
+        const price = displayPriceRubles(p);
         return price != null && price >= min;
       });
     }
@@ -141,7 +157,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const max = Number(max_price);
     if (!isNaN(max)) {
       products = products.filter((p) => {
-        const price = p.variants?.[0]?.prices?.[0]?.amount;
+        const price = displayPriceRubles(p);
         return price != null && price <= max;
       });
     }
@@ -173,15 +189,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     switch (sort) {
       case "price_asc":
         products.sort((a, b) => {
-          const pa = a.variants?.[0]?.prices?.[0]?.amount ?? Infinity;
-          const pb = b.variants?.[0]?.prices?.[0]?.amount ?? Infinity;
+          const pa = displayPriceRubles(a) ?? Infinity;
+          const pb = displayPriceRubles(b) ?? Infinity;
           return pa - pb;
         });
         break;
       case "price_desc":
         products.sort((a, b) => {
-          const pa = a.variants?.[0]?.prices?.[0]?.amount ?? 0;
-          const pb = b.variants?.[0]?.prices?.[0]?.amount ?? 0;
+          const pa = displayPriceRubles(a) ?? 0;
+          const pb = displayPriceRubles(b) ?? 0;
           return pb - pa;
         });
         break;
