@@ -79,3 +79,36 @@ export const MIN_CUT_METERS = 0.5;
 
 /** Шаг отреза в метрах */
 export const CUT_STEP_METERS = 0.1;
+
+// ============================================
+// Конвертация сантиметры ↔ метры
+// ============================================
+
+/** Сантиметров в одном метре */
+export const CM_PER_METER = 100;
+
+/** Метры → сантиметры (для отправки в Medusa) */
+export function metersToCm(meters: number): number {
+  return Math.round(meters * CM_PER_METER);
+}
+
+/** Сантиметры → метры (для отображения на фронте) */
+export function cmToMeters(cm: number): number {
+  return Math.round((cm / CM_PER_METER) * 10) / 10;
+}
+
+/**
+ * Цена за 1 см (копейки) → цена за 1 метр (копейки).
+ * Для отображения на витрине.
+ */
+export function pricePerCmToPerMeter(pricePerCm: number): number {
+  return pricePerCm * CM_PER_METER;
+}
+
+/**
+ * Цена за 1 метр (копейки) → цена за 1 см (копейки).
+ * Для хранения в Medusa.
+ */
+export function pricePerMeterToPerCm(pricePerMeter: number): number {
+  return Math.round(pricePerMeter / CM_PER_METER);
+}

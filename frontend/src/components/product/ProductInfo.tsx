@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { formatPrice, formatWidth, MEASUREMENT_UNITS, MEASUREMENT_UNITS_FULL, MIN_CUT_METERS, CUT_STEP_METERS } from "@/lib/utils";
+import { useState, useEffect, useCallback } from "react";
+import { formatPrice, formatWidth, MEASUREMENT_UNITS, MEASUREMENT_UNITS_FULL, MIN_CUT_METERS, CUT_STEP_METERS, cmToMeters, metersToCm, pricePerCmToPerMeter } from "@/lib/utils";
 import { FABRIC_TYPE_LABELS } from "@/types/product";
 import type { Product, FabricMetadata } from "@/types/product";
 import { SafeHtml } from "@/components/ui/SafeHtml";
+import { useCartStore } from "@/store/cart-store";
 
 interface ProductInfoProps {
   product: Product;
@@ -13,6 +14,7 @@ interface ProductInfoProps {
 
 /**
  * Блок информации о товаре: цена, характеристики, кнопка «В корзину».
+ * Если товар уже в корзине — показывает текущее количество и кнопку «Обновить».
  */
 export function ProductInfo({ product, fabricData }: ProductInfoProps) {
   const meta = fabricData as FabricMetadata | null;
@@ -22,13 +24,87 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
 
   // Параметры отреза из metadata (или дефолты)
   const isFabric = meta?.measurement_unit === "running_meter";
+
+  // --- Конверсии: в админке ВСЕ цены в рублях, formatPrice() ожидает копейки → ×100 ---
+  const pricePerUnit = price ? pricePerCmToPerMeter(price.amount) : 0;
+  const maxQtyMeters = isFabric ? cmToMeters(variant?.inventory_quantity ?? 0) : (variant?.inventory_quantity ?? 0);
+
   const min = meta?.min_order ?? (isFabric ? MIN_CUT_METERS : 1);
   const step = meta?.order_step ?? (isFabric ? CUT_STEP_METERS : 1);
   const unitShort = MEASUREMENT_UNITS[meta?.measurement_unit || "running_meter"] || "пог. м";
   const unitFull = MEASUREMENT_UNITS_FULL[meta?.measurement_unit || "running_meter"] || "метр погонный";
-  const maxQty = variant?.inventory_quantity ?? 0;
+
+  // --- Связь с корзиной ---
+  const items = useCartStore((s) => s.items);
+  const addToCart = useCartStore((s) => s.addToCart);
+  const updateItem = useCartStore((s) => s.updateItem);
+  const refreshCart = useCartStore((s) => s.refreshCart);
+
+  // Найти позицию корзины для этого варианта
+  const cartItem = variant
+    ? items.find((i) => i.variant_id === variant.id)
+    : null;
+  const isInCart = !!cartItem;
+
+  // Количество в корзине (в метрах для тканей, в штуках для штучных)
+  const cartQty = cartItem
+    ? (isFabric ? cmToMeters(cartItem.quantity) : cartItem.quantity)
+    : 0;
 
   const [quantity, setQuantity] = useState(min);
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [updated, setUpdated] = useState(false);
+
+  // Синхронизировать quantity с корзиной при загрузке/изменении
+  useEffect(() => {
+    if (isInCart && cartQty > 0) {
+      setQuantity(Math.round(cartQty * 10) / 10);
+    }
+  }, [isInCart, cartQty]);
+
+  // Подтянуть данные корзины при монтировании
+  useEffect(() => {
+    refreshCart();
+  }, [refreshCart]);
+
+  const handleAddToCart = async () => {
+    if (!variant) return;
+    setAdding(true);
+    try {
+      if (isFabric) {
+        await addToCart(variant.id, metersToCm(quantity), {
+          measurement_unit: "running_meter",
+        });
+      } else {
+        await addToCart(variant.id, quantity);
+      }
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+    } catch (err) {
+      console.error("Ошибка добавления в корзину:", err);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleUpdateCart = async () => {
+    if (!cartItem) return;
+    setAdding(true);
+    try {
+      const newQty = isFabric ? metersToCm(quantity) : quantity;
+      await updateItem(cartItem.id, newQty);
+      setUpdated(true);
+      setTimeout(() => setUpdated(false), 2000);
+    } catch (err) {
+      console.error("Ошибка обновления корзины:", err);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  // Проверить, изменилось ли количество относительно корзины
+  const qtyChanged = isInCart && Math.abs(quantity - cartQty) >= (step * 0.5);
 
   const decrease = () => {
     setQuantity((q) => {
@@ -40,11 +116,12 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
   const increase = () => {
     setQuantity((q) => {
       const next = Math.round((q + step) * 10) / 10;
-      return next <= maxQty ? next : q;
+      return next <= maxQtyMeters ? next : q;
     });
   };
 
-  const totalPrice = price ? Math.round(price.amount * quantity) : 0;
+  // Итого: цена за единицу × количество (pricePerUnit уже в копейках)
+  const totalPrice = Math.round(pricePerUnit * quantity);
 
   return (
     <div className="space-y-6">
@@ -71,7 +148,7 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
       {price && (
         <div className="flex items-baseline gap-3">
           <span className="text-3xl font-bold text-primary-800">
-            {formatPrice(price.amount, price.currency_code)}
+            {formatPrice(pricePerUnit, price.currency_code)}
           </span>
           <span className="text-sm text-gray-500">
             / {unitShort}
@@ -149,7 +226,7 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
       <div className="space-y-4 border-t border-gray-200 pt-6">
         <p className={`text-sm font-medium ${inStock ? "text-primary-600" : "text-red-600"}`}>
           {inStock
-            ? `В наличии (${variant?.inventory_quantity} ${unitShort})`
+            ? `В наличии (${maxQtyMeters} ${unitShort})`
             : "Нет в наличии"}
         </p>
 
@@ -176,11 +253,11 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
                   type="number"
                   value={quantity}
                   min={min}
-                  max={maxQty}
+                  max={maxQtyMeters}
                   step={step}
                   onChange={(e) => {
                     const v = parseFloat(e.target.value);
-                    if (!isNaN(v) && v >= min && v <= maxQty) {
+                    if (!isNaN(v) && v >= min && v <= maxQtyMeters) {
                       setQuantity(Math.round(v * 10) / 10);
                     }
                   }}
@@ -192,7 +269,7 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
                 <button
                   type="button"
                   onClick={increase}
-                  disabled={quantity >= maxQty}
+                  disabled={quantity >= maxQtyMeters}
                   className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-lg font-bold text-gray-600 transition hover:bg-gray-100 disabled:opacity-40"
                 >
                   +
@@ -204,7 +281,7 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
             {price && (
               <div className="flex items-baseline justify-between rounded-lg bg-primary-50 px-4 py-3">
                 <span className="text-sm text-gray-600">
-                  {quantity} {unitShort} × {formatPrice(price.amount, price.currency_code)}
+                  {quantity} {unitShort} × {formatPrice(pricePerUnit, price.currency_code)}
                 </span>
                 <span className="text-lg font-bold text-primary-800">
                   = {formatPrice(totalPrice, price.currency_code)}
@@ -215,10 +292,25 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
         )}
 
         <button
-          disabled={!inStock}
-          className="btn-primary w-full text-base"
+          disabled={!inStock || adding || (isInCart && !qtyChanged)}
+          onClick={isInCart ? handleUpdateCart : handleAddToCart}
+          className={`w-full text-base ${
+            isInCart && !qtyChanged
+              ? "cursor-default rounded-lg bg-primary-100 py-3 font-semibold text-primary-700"
+              : "btn-primary"
+          }`}
         >
-          {inStock ? "Добавить в корзину" : "Сообщить о поступлении"}
+          {adding
+            ? (isInCart ? "Обновляем..." : "Добавляем...")
+            : updated
+              ? "✓ Обновлено!"
+              : added
+                ? "✓ Добавлено!"
+                : isInCart
+                  ? (qtyChanged ? "Обновить количество" : "✓ Уже в корзине")
+                  : inStock
+                    ? "Добавить в корзину"
+                    : "Сообщить о поступлении"}
         </button>
       </div>
     </div>

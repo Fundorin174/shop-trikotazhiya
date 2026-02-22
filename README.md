@@ -64,7 +64,11 @@
 
 ## Быстрый старт (локально)
 
-### 1. Установить Node.js 20
+### Первоначальная настройка (один раз)
+
+Эти шаги выполняются **только при первом запуске** проекта.
+
+#### 1. Установить Node.js 20
 
 ```powershell
 # Через nvm for Windows
@@ -73,31 +77,32 @@ nvm use 20
 node -v   # Должно быть v20.x.x
 ```
 
-### 2. Запустить PostgreSQL
+#### 2. Добавить Redis в PATH (опционально)
+
+Redis установлен в `C:\tools\redis`, но не добавлен в PATH. Чтобы команда `redis-cli` работала без полного пути:
+
+```powershell
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\tools\redis", "User")
+# Перезапустите терминал после выполнения
+```
+
+Если не хотите менять PATH — используйте полный путь: `C:\tools\redis\redis-cli.exe`.
+
+#### 3. Создать базу данных PostgreSQL
 
 PostgreSQL 16 должен быть установлен и запущен как сервис:
 
 ```powershell
-# Проверить статус (Windows)
+# Проверить, что PostgreSQL запущен
 Get-Service postgresql-x64-16
 
-# Создать базу данных (одноразово)
+# Создать пользователя и базу данных
 psql -U postgres -c "CREATE USER medusa WITH PASSWORD '<ВАШ_ПАРОЛЬ_БД>';"
 psql -U postgres -c "CREATE DATABASE medusa_trikotazhiya OWNER medusa;"
 psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE medusa_trikotazhiya TO medusa;"
 ```
 
-### 3. Запустить Redis
-
-```powershell
-# Windows (портативная версия)
-Start-Process -FilePath "C:\tools\redis\redis-server.exe" -WindowStyle Minimized
-
-# Проверить
-redis-cli ping   # Должен ответить PONG
-```
-
-### 4. Установить зависимости
+#### 4. Установить зависимости
 
 ```powershell
 # Backend
@@ -109,24 +114,59 @@ cd ../frontend
 npm install
 ```
 
-### 5. Применить миграции БД
+#### 5. Применить миграции БД
 
 ```powershell
 cd backend
 npx medusa db:migrate
 ```
 
-### 6. Создать админ-пользователя (одноразово)
+#### 6. Создать админ-пользователя
 
 ```powershell
 cd backend
 npx medusa user -e admin@trikotazhiya.ru -p <ВАШ_ПАРОЛЬ>
 ```
 
-### 7. Запустить Backend (порт 9000)
+#### 7. Получить Publishable API Key
+
+После первого запуска бэкенда (см. ниже) создайте ключ через админку:
+http://localhost:9000/app → Settings → API Keys → Create API Key (тип `publishable`).
+
+Пропишите полученный ключ в `frontend/.env.local`:
+```
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_ваш_ключ
+```
+
+Подробности и вариант через CLI — см. раздел [Получение Publishable API Key](#получение-publishable-api-key).
+
+---
+
+### Ежедневный запуск
+
+Эти шаги выполняются **каждый раз**, когда вы хотите работать с проектом.
+
+#### 1. Убедиться, что PostgreSQL запущен
 
 ```powershell
-cd backend
+Get-Service postgresql-x64-16
+# Если Status не Running:
+Get-Service postgresql-x64-16 | Start-Service
+```
+
+#### 2. Запустить Redis
+
+```powershell
+Start-Process -FilePath "C:\tools\redis\redis-server.exe" -WindowStyle Minimized
+
+# Проверить (используйте полный путь, если Redis не в PATH)
+C:\tools\redis\redis-cli.exe ping   # Должен ответить PONG
+```
+
+#### 3. Запустить Backend (порт 9000)
+
+```powershell
+cd E:\Projects\shop-trikotazhiya\backend
 npx medusa develop
 ```
 
@@ -135,7 +175,7 @@ npx medusa develop
 ✔ Server is ready on port: 9000
 ```
 
-### 8. Запустить Frontend (порт 3000)
+#### 4. Запустить Frontend (порт 3001)
 
 В **отдельном** терминале:
 
@@ -144,7 +184,7 @@ cd frontend
 npm run dev
 ```
 
-### 9. Открыть в браузере
+#### 5. Открыть в браузере
 
 | Сервис         | URL                           |
 |----------------|-------------------------------|
@@ -409,6 +449,7 @@ Get-Service postgresql-x64-16 | Start-Service
 
 # Redis
 Start-Process "C:\tools\redis\redis-server.exe" -WindowStyle Minimized
+C:\tools\redis\redis-cli.exe ping   # Должен ответить PONG
 ```
 
 ---

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingCart, Menu, X, Search } from "lucide-react";
+import { useCartStore } from "@/store/cart-store";
 
 /**
  * Шапка сайта — навигация, поиск, корзина.
@@ -11,6 +12,13 @@ import { ShoppingCart, Menu, X, Search } from "lucide-react";
  */
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const itemCount = useCartStore((s) => s.itemCount);
+  const refreshCart = useCartStore((s) => s.refreshCart);
+
+  // При загрузке страницы — синхронизировать корзину с сервером
+  useEffect(() => {
+    refreshCart();
+  }, [refreshCart]);
 
   const navigation = [
     { name: "Каталог", href: "/catalog" },
@@ -67,7 +75,11 @@ export function Header() {
               aria-label="Корзина"
             >
               <ShoppingCart className="h-5 w-5" />
-              {/* TODO: счётчик из store */}
+              {itemCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent-600 text-[11px] font-bold text-white">
+                  {itemCount > 9 ? "9+" : itemCount}
+                </span>
+              )}
             </Link>
 
             {/* Бургер — мобильное меню */}

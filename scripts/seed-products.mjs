@@ -23,6 +23,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@trikotazhiya.ru";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const SALES_CHANNEL_ID = process.env.SALES_CHANNEL_ID || "sc_01KJ04YBSSYPNWPJD73QP6H8YK";
 const STORE_ID = process.env.STORE_ID || "store_01KJ04HZAANBA9DEENBR5PVGDN";
+const STOCK_LOCATION_ID = process.env.STOCK_LOCATION_ID || "sloc_01KJ0C2S3ETR2JNVB7HFD3D2ZN";
 
 if (!ADMIN_PASSWORD) {
   console.error("❌ Задайте ADMIN_PASSWORD через переменную окружения!");
@@ -123,9 +124,9 @@ const PRODUCTS = [
       color: "Тёмно-синий",
       color_hex: "#1B1B6F",
     },
-    price: 45000, // 450 ₽
+    price: 450, // 450 ₽/м на сайте
     sku: "TK-KUL-001",
-    inventory: 300,
+    inventory: 30000, // 300 м в см
   },
   {
     title: "Футер 3-нитка с начёсом",
@@ -148,9 +149,9 @@ const PRODUCTS = [
       color: "Серый меланж",
       color_hex: "#B0B0B0",
     },
-    price: 55000,
+    price: 550, // 550 ₽/м на сайте
     sku: "TK-FTR-002",
-    inventory: 200,
+    inventory: 20000, // 200 м в см
   },
   {
     title: "Капитоний стёганый",
@@ -173,9 +174,9 @@ const PRODUCTS = [
       color: "Молочный",
       color_hex: "#FFFDD0",
     },
-    price: 65000,
+    price: 650, // 650 ₽/м на сайте
     sku: "TK-KAP-003",
-    inventory: 150,
+    inventory: 15000, // 150 м в см
   },
   {
     title: "Кашкорсе с лайкрой",
@@ -198,9 +199,9 @@ const PRODUCTS = [
       color: "Чёрный",
       color_hex: "#000000",
     },
-    price: 42000,
+    price: 420, // 420 ₽/м на сайте
     sku: "TK-KSH-004",
-    inventory: 250,
+    inventory: 25000, // 250 м в см
   },
   {
     title: "Пике хлопковое",
@@ -223,9 +224,9 @@ const PRODUCTS = [
       color: "Белый",
       color_hex: "#FFFFFF",
     },
-    price: 38000,
+    price: 380, // 380 ₽/м на сайте
     sku: "TK-PIK-005",
-    inventory: 180,
+    inventory: 18000, // 180 м в см
   },
   {
     title: "Рибана с лайкрой",
@@ -248,9 +249,9 @@ const PRODUCTS = [
       color: "Пудровый",
       color_hex: "#E8C4C4",
     },
-    price: 35000,
+    price: 350, // 350 ₽/м на сайте
     sku: "TK-RIB-006",
-    inventory: 400,
+    inventory: 40000, // 400 м в см
   },
   {
     title: "Интерлок хлопковый",
@@ -273,9 +274,9 @@ const PRODUCTS = [
       color: "Мятный",
       color_hex: "#98FF98",
     },
-    price: 48000,
+    price: 480, // 480 ₽/м на сайте
     sku: "TK-INT-007",
-    inventory: 220,
+    inventory: 22000, // 220 м в см
   },
   {
     title: "Купон с принтом «Розы»",
@@ -299,9 +300,9 @@ const PRODUCTS = [
       color_hex: "#FF69B4",
       discount_percent: 15,
     },
-    price: 52000,
+    price: 520, // 520 ₽/шт. (все цены в рублях)
     sku: "TK-KUP-008",
-    inventory: 80,
+    inventory: 80, // 80 штук
   },
   {
     title: "Трикотажная вязка косами",
@@ -324,9 +325,9 @@ const PRODUCTS = [
       color: "Бежевый",
       color_hex: "#F5F5DC",
     },
-    price: 95000,
+    price: 950, // 950 ₽/м на сайте
     sku: "TK-VYA-009",
-    inventory: 60,
+    inventory: 6000, // 60 м в см
   },
   {
     title: "Термополотно флисовое",
@@ -349,9 +350,9 @@ const PRODUCTS = [
       color: "Графитовый",
       color_hex: "#383838",
     },
-    price: 32000,
+    price: 320, // 320 ₽/м на сайте
     sku: "TK-TRM-010",
-    inventory: 350,
+    inventory: 35000, // 350 м в см
   },
   {
     title: "Джерси вискозный",
@@ -374,9 +375,9 @@ const PRODUCTS = [
       color: "Изумрудный",
       color_hex: "#50C878",
     },
-    price: 78000,
+    price: 780, // 780 ₽/м на сайте
     sku: "TK-DZH-011",
-    inventory: 90,
+    inventory: 9000, // 90 м в см
   },
   {
     title: "Фурнитура: набор кнопок 10 мм",
@@ -399,9 +400,9 @@ const PRODUCTS = [
       color: "Серебристый",
       color_hex: "#C0C0C0",
     },
-    price: 15000,
+    price: 150, // 150 ₽/шт. (все цены в рублях)
     sku: "TK-FUR-012",
-    inventory: 500,
+    inventory: 500, // 500 штук
   },
 ];
 
@@ -447,7 +448,56 @@ async function createProduct(product, regionId) {
 
   const p = res.product;
   console.log(`  ✅ ${p.title} → ${p.id}`);
+
+  // 2. Настроить инвентарь (stocked_quantity)
+  if (product.inventory != null) {
+    await setupInventory(p, product.inventory);
+  }
+
   return p;
+}
+
+/**
+ * Настроить инвентарь для созданного продукта.
+ * 1. Найти Inventory Item по variant_id
+ * 2. Создать или обновить Inventory Level на складе
+ */
+async function setupInventory(product, quantity) {
+  const variant = product.variants?.[0];
+  if (!variant) {
+    console.error(`  ⚠️  Нет варианта у ${product.title}, пропускаю инвентарь`);
+    return;
+  }
+
+  // Получить inventory items для варианта
+  const invRes = await api("GET", `/admin/inventory-items?sku=${variant.sku}`);
+  if (!invRes || !invRes.inventory_items?.length) {
+    console.error(`  ⚠️  Inventory Item не найден для SKU ${variant.sku}`);
+    return;
+  }
+
+  const inventoryItem = invRes.inventory_items[0];
+
+  // Проверить, есть ли уже уровень запаса для нашего склада
+  const levelsRes = await api("GET", `/admin/inventory-items/${inventoryItem.id}/location-levels`);
+  const existingLevel = levelsRes?.inventory_levels?.find(
+    (l) => l.location_id === STOCK_LOCATION_ID
+  );
+
+  if (existingLevel) {
+    // Обновить количество
+    await api("POST", `/admin/inventory-items/${inventoryItem.id}/location-levels/${existingLevel.id}`, {
+      stocked_quantity: quantity,
+    });
+    console.log(`  📦 Обновлён запас: ${quantity}`);
+  } else {
+    // Создать уровень запаса
+    await api("POST", `/admin/inventory-items/${inventoryItem.id}/location-levels`, {
+      location_id: STOCK_LOCATION_ID,
+      stocked_quantity: quantity,
+    });
+    console.log(`  📦 Создан запас: ${quantity}`);
+  }
 }
 
 // ===== MAIN =====

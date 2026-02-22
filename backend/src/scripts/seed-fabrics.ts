@@ -20,9 +20,9 @@ const SEED_FABRICS = [
       composition: "100% хлопок, 142 г/м²",
       quality: "Первый сорт, ГОСТ 29298-2005",
       width_cm: 150,
-      unit_price: 25000, // 250 ₽ за метр
-      measurement_unit: "meter",
-      stock_quantity: 500,
+      unit_price: 250, // 250 ₽/м на сайте
+      measurement_unit: "running_meter",
+      stock_quantity: 50000, // 500 м в см
       country: "Россия",
       collection_name: "Базовые ткани",
       color: "Белый",
@@ -50,9 +50,9 @@ const SEED_FABRICS = [
       composition: "100% шёлк, 90 г/м²",
       quality: "Премиум",
       width_cm: 140,
-      unit_price: 180000, // 1800 ₽
-      measurement_unit: "meter",
-      stock_quantity: 50,
+      unit_price: 1800, // 1800 ₽/м на сайте
+      measurement_unit: "running_meter",
+      stock_quantity: 5000, // 50 м в см
       country: "Италия",
       collection_name: "Премиум коллекция",
       color: "Бордовый",
@@ -77,9 +77,9 @@ const SEED_FABRICS = [
       composition: "92% хлопок, 8% эластан, 180 г/м²",
       quality: "Премиум, пенье",
       width_cm: 180,
-      unit_price: 45000, // 450 ₽
-      measurement_unit: "meter",
-      stock_quantity: 300,
+      unit_price: 450, // 450 ₽/м на сайте
+      measurement_unit: "running_meter",
+      stock_quantity: 30000, // 300 м в см
       country: "Турция",
       collection_name: "Трикотаж",
       color: "Тёмно-синий",
@@ -105,9 +105,9 @@ const SEED_FABRICS = [
       composition: "100% лён, 200 г/м²",
       quality: "Первый сорт",
       width_cm: 150,
-      unit_price: 85000, // 850 ₽
-      measurement_unit: "meter",
-      stock_quantity: 120,
+      unit_price: 850, // 850 ₽/м на сайте
+      measurement_unit: "running_meter",
+      stock_quantity: 12000, // 120 м в см
       country: "Беларусь",
       collection_name: "Лён & Хлопок",
       color: "Натуральный",
@@ -133,9 +133,9 @@ const SEED_FABRICS = [
       composition: "95% шерсть, 5% эластан, 260 г/м²",
       quality: "Super 120s",
       width_cm: 155,
-      unit_price: 250000, // 2500 ₽
-      measurement_unit: "meter",
-      stock_quantity: 30,
+      unit_price: 2500, // 2500 ₽/м на сайте
+      measurement_unit: "running_meter",
+      stock_quantity: 3000, // 30 м в см
       country: "Италия",
       collection_name: "Премиум коллекция",
       color: "Графит",

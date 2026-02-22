@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getProductsList } from "@/lib/data/products";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, pricePerCmToPerMeter } from "@/lib/utils";
 import type { ProductFilters } from "@/types/product";
 
 interface CatalogGridProps {
@@ -93,7 +93,13 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
                   {/* Цена */}
                   {price && (
                     <p className="mt-2 text-base font-semibold text-primary-800">
-                      {formatPrice(price.amount, price.currency_code)}
+                      {formatPrice(
+                        pricePerCmToPerMeter(price.amount),
+                        price.currency_code
+                      )}
+                      <span className="ml-1 text-xs font-normal text-gray-500">
+                        / {meta?.measurement_unit === "running_meter" ? "пог. м" : "шт."}
+                      </span>
                     </p>
                   )}
                 </div>
