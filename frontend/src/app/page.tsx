@@ -70,16 +70,39 @@ export default async function HomePage() {
           <h2 className="font-heading text-3xl font-bold text-primary-900">
             Категории тканей
           </h2>
-          <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+          <p className="mt-2 text-gray-600">
+            Выберите тип ткани для просмотра ассортимента
+          </p>
+          <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
             {Object.entries(FABRIC_TYPE_LABELS).map(([key, label]) => (
               <Link
                 key={key}
                 href={`/catalog?type=${encodeURIComponent(key)}`}
-                className="flex flex-col items-center justify-center rounded-lg border border-gray-200 p-6 text-center transition-shadow hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
               >
-                <span className="text-lg font-medium text-primary-800">
-                  {label}
-                </span>
+                {/* Фоновая текстура */}
+                <div className="aspect-[4/3] w-full">
+                  <Image
+                    src={`/fabrics/${key}.jpg`}
+                    alt={`Текстура ${label}`}
+                    width={400}
+                    height={300}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
+                </div>
+
+                {/* Затемнение + название */}
+                <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/60 via-black/10 to-transparent p-4 transition-all duration-300 group-hover:from-black/70">
+                  <div>
+                    <h3 className="text-lg font-bold leading-tight text-white drop-shadow-sm sm:text-xl">
+                      {label}
+                    </h3>
+                    <span className="mt-1 inline-flex items-center text-xs font-medium text-white/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      Смотреть ткани →
+                    </span>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
