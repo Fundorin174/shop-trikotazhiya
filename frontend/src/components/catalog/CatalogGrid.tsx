@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getProductsList } from "@/lib/data/products";
 import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
+import { ProductCardImage } from "@/components/catalog/ProductCardImage";
 import { PerPageSelector } from "@/components/catalog/PerPageSelector";
 import type { ProductFilters } from "@/types/product";
 import { FABRIC_TYPE_LABELS, type FabricType } from "@/types/product";
@@ -94,16 +94,9 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
 
               <Link href={`/products/${product.handle}`}>
                 {/* Изображение */}
-                <div className="aspect-[4/5] overflow-hidden bg-gray-100">
+                <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
                   {imgSrc ? (
-                    <Image
-                      src={imgSrc}
-                      alt={product.title}
-                      width={400}
-                      height={500}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                    />
+                    <ProductCardImage src={imgSrc} alt={product.title} />
                   ) : (
                     <FabricPlaceholder />
                   )}

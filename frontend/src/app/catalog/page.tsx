@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
-import { CatalogSkeleton } from "@/components/catalog/CatalogSkeleton";
 import { MobileFilterPanel } from "@/components/catalog/MobileFilterPanel";
 import type { Metadata } from "next";
 
@@ -56,9 +54,7 @@ export default function CatalogPage({ searchParams }: CatalogPageProps) {
 
         {/* Сетка товаров */}
         <section>
-          <Suspense fallback={<CatalogSkeleton />}>
-            <CatalogGrid filters={searchParams} />
-          </Suspense>
+          <CatalogGrid filters={searchParams} />
         </section>
       </div>
     </div>
