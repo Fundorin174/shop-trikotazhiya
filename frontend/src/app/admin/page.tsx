@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 
 // ============================================
 // Типы
 // ============================================
+
+type AdminTab = "import" | "products";
 
 interface ImportProduct {
   title: string;
@@ -45,6 +47,22 @@ interface ImportResponse {
   summary: { total: number; created: number; failed: number };
   results: ImportResult[];
   error?: string;
+}
+
+/** Товар из Medusa (для списка) */
+interface MedusaProduct {
+  id: string;
+  title: string;
+  handle: string;
+  status: string;
+  sku: string;
+  variantId: string;
+  price: number;
+  currency: string;
+  fabric_type: string;
+  measurement_unit: string;
+  inventory: number | null;
+  created_at: string;
 }
 
 // ============================================
@@ -269,11 +287,517 @@ function ResultsPanel({ results }: { results: ImportResult[] }) {
 }
 
 // ============================================
+// Список товаров из Medusa
+// ============================================
+
+type SortKey = "sku" | "title" | "fabric_type" | "price" | "status" | "inventory" | "created_at";
+type SortDir = "asc" | "desc";
+
+function ExistingProductsList({ token }: { token: string }) {
+  const [products, setProducts] = useState<MedusaProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("sku");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [editPriceValue, setEditPriceValue] = useState("");
+  const [savingPrice, setSavingPrice] = useState(false);
+  const [confirmPriceId, setConfirmPriceId] = useState<string | null>(null);
+  const [editingInvId, setEditingInvId] = useState<string | null>(null);
+  const [editInvValue, setEditInvValue] = useState("");
+  const [savingInv, setSavingInv] = useState(false);
+  const [confirmInvId, setConfirmInvId] = useState<string | null>(null);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const sortedProducts = useMemo(() => {
+    const list = [...products];
+    const dir = sortDir === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      switch (sortKey) {
+        case "sku":
+          return dir * a.sku.localeCompare(b.sku, "ru", { numeric: true });
+        case "title":
+          return dir * a.title.localeCompare(b.title, "ru");
+        case "fabric_type":
+          return dir * (a.fabric_type || "").localeCompare(b.fabric_type || "", "ru");
+        case "price": {
+          const pa = a.measurement_unit === "running_meter" ? a.price : a.price / 100;
+          const pb = b.measurement_unit === "running_meter" ? b.price : b.price / 100;
+          return dir * (pa - pb);
+        }
+        case "status":
+          return dir * a.status.localeCompare(b.status, "ru");
+        case "inventory":
+          return dir * ((a.inventory ?? -1) - (b.inventory ?? -1));
+        case "created_at":
+          return dir * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        default:
+          return 0;
+      }
+    });
+    return list;
+  }, [products, sortKey, sortDir]);
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <span className="ml-1 text-gray-300">↕</span>;
+    return <span className="ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
+  };
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/products", {
+        headers: { "x-admin-token": token },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка загрузки");
+      setProducts(data.products);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const handleDelete = async (productId: string) => {
+    setDeleting(productId);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify({ productId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка удаления");
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      setConfirmDelete(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка удаления");
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const formatPrice = (amount: number, unit: string) => {
+    // amount — копейки за 1 см (для метровых) или копейки за штуку
+    if (unit === "running_meter") {
+      return `${(amount * 100 / 100).toLocaleString("ru-RU")} ₽/м`;
+    }
+    return `${(amount / 100).toLocaleString("ru-RU")} ₽/шт`;
+  };
+
+  /** Начать редактирование цены по двойному клику */
+  const startPriceEdit = (p: MedusaProduct) => {
+    // Показываем цену в рублях
+    const displayRub =
+      p.measurement_unit === "running_meter"
+        ? p.price // копейки/см = рубли/м
+        : p.price / 100; // копейки → рубли
+    setEditingPriceId(p.id);
+    setEditPriceValue(String(displayRub));
+    setConfirmPriceId(null);
+  };
+
+  /** Показать подтверждение изменения */
+  const requestPriceConfirm = () => {
+    const num = parseFloat(editPriceValue);
+    if (isNaN(num) || num < 0) {
+      setError("Введите корректную цену");
+      return;
+    }
+    setConfirmPriceId(editingPriceId);
+  };
+
+  /** Сохранить цену */
+  const savePrice = async () => {
+    const product = products.find((p) => p.id === editingPriceId);
+    if (!product) return;
+
+    const rubPrice = parseFloat(editPriceValue);
+    if (isNaN(rubPrice) || rubPrice < 0) return;
+
+    // Конвертируем обратно в хранимые единицы
+    const amount =
+      product.measurement_unit === "running_meter"
+        ? Math.round(rubPrice) // руб/м = коп/см
+        : Math.round(rubPrice * 100); // руб → копейки
+
+    setSavingPrice(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify({
+          productId: product.id,
+          variantId: product.variantId,
+          amount,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка сохранения");
+
+      // Обновляем локально
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, price: amount } : p))
+      );
+      setEditingPriceId(null);
+      setConfirmPriceId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка сохранения цены");
+    } finally {
+      setSavingPrice(false);
+    }
+  };
+
+  const cancelPriceEdit = () => {
+    setEditingPriceId(null);
+    setConfirmPriceId(null);
+    setEditPriceValue("");
+  };
+
+  /** Начать редактирование запаса по двойному клику */
+  const startInvEdit = (p: MedusaProduct) => {
+    if (p.inventory == null) return;
+    // Показываем в пользовательских единицах: метры для метровых, штуки для штучных
+    const display =
+      p.measurement_unit === "running_meter"
+        ? p.inventory / 100 // см → метры
+        : p.inventory;
+    setEditingInvId(p.id);
+    setEditInvValue(String(display));
+    setConfirmInvId(null);
+  };
+
+  const requestInvConfirm = () => {
+    const num = parseFloat(editInvValue);
+    if (isNaN(num) || num < 0) {
+      setError("Введите корректное количество");
+      return;
+    }
+    setConfirmInvId(editingInvId);
+  };
+
+  const saveInventory = async () => {
+    const product = products.find((p) => p.id === editingInvId);
+    if (!product) return;
+
+    const userVal = parseFloat(editInvValue);
+    if (isNaN(userVal) || userVal < 0) return;
+
+    // Конвертируем обратно в хранимые единицы
+    const rawQty =
+      product.measurement_unit === "running_meter"
+        ? Math.round(userVal * 100) // метры → см
+        : Math.round(userVal);
+
+    setSavingInv(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify({ sku: product.sku, quantity: rawQty }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка сохранения");
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, inventory: rawQty } : p))
+      );
+      setEditingInvId(null);
+      setConfirmInvId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка сохранения запаса");
+    } finally {
+      setSavingInv(false);
+    }
+  };
+
+  const cancelInvEdit = () => {
+    setEditingInvId(null);
+    setConfirmInvId(null);
+    setEditInvValue("");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <svg className="h-6 w-6 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+        </svg>
+        <span className="ml-2 text-sm text-gray-500">Загрузка товаров...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Шапка списка */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-gray-500">
+          Всего: <strong className="text-gray-900">{products.length}</strong> товаров
+        </div>
+        <button
+          onClick={fetchProducts}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100"
+        >
+          ↻ Обновить
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+
+      {/* Таблица */}
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort("sku")}>SKU<SortIcon col="sku" /></th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort("title")}>Название<SortIcon col="title" /></th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort("fabric_type")}>Тип<SortIcon col="fabric_type" /></th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort("price")}>Цена<SortIcon col="price" /></th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort("status")}>Статус<SortIcon col="status" /></th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort("inventory")}>Запас<SortIcon col="inventory" /></th>
+              <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort("created_at")}>Дата<SortIcon col="created_at" /></th>
+              <th className="px-4 py-3 text-right">Действие</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {sortedProducts.map((p) => (
+              <tr key={p.id} className="hover:bg-gray-50">
+                <td className="px-4 py-2.5 font-mono text-xs font-medium">{p.sku}</td>
+                <td className="max-w-[250px] truncate px-4 py-2.5">
+                  <a
+                    href={`/products/${p.handle}`}
+                    target="_blank"
+                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {p.title}
+                  </a>
+                </td>
+                <td className="px-4 py-2.5">
+                  {p.fabric_type && (
+                    <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+                      {FABRIC_LABELS[p.fabric_type] || p.fabric_type}
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2.5 font-medium">
+                  {editingPriceId === p.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={editPriceValue}
+                        onChange={(e) => setEditPriceValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") requestPriceConfirm();
+                          if (e.key === "Escape") cancelPriceEdit();
+                        }}
+                        autoFocus
+                        className="w-24 rounded border border-blue-300 px-2 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                      <span className="text-xs text-gray-400">
+                        {p.measurement_unit === "running_meter" ? "₽/м" : "₽/шт"}
+                      </span>
+                      {confirmPriceId === p.id ? (
+                        <>
+                          <span className="text-xs text-orange-600">Сохранить?</span>
+                          <button
+                            onClick={savePrice}
+                            disabled={savingPrice}
+                            className="rounded bg-green-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-green-700 disabled:bg-green-400"
+                          >
+                            {savingPrice ? "…" : "Да"}
+                          </button>
+                          <button
+                            onClick={() => setConfirmPriceId(null)}
+                            className="rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-300"
+                          >
+                            Нет
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={requestPriceConfirm}
+                            className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-blue-700"
+                          >
+                            ✓
+                          </button>
+                          <button
+                            onClick={cancelPriceEdit}
+                            className="rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-300"
+                          >
+                            ✕
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <span
+                      onDoubleClick={() => startPriceEdit(p)}
+                      className="cursor-pointer rounded px-1 py-0.5 transition-colors hover:bg-blue-50"
+                      title="Двойной клик для редактирования"
+                    >
+                      {formatPrice(p.price, p.measurement_unit)}
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2.5">
+                  <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                      p.status === "published"
+                        ? "bg-green-50 text-green-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {p.status === "published" ? "Опубликован" : p.status}
+                  </span>
+                </td>
+                <td className="px-4 py-2.5 text-right text-xs tabular-nums">
+                  {editingInvId === p.id ? (
+                    <div className="flex items-center justify-end gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        step={p.measurement_unit === "running_meter" ? "0.5" : "1"}
+                        value={editInvValue}
+                        onChange={(e) => setEditInvValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") requestInvConfirm();
+                          if (e.key === "Escape") cancelInvEdit();
+                        }}
+                        autoFocus
+                        className="w-20 rounded border border-blue-300 px-2 py-1 text-right text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                      <span className="text-xs text-gray-400">
+                        {p.measurement_unit === "running_meter" ? "м" : "шт"}
+                      </span>
+                      {confirmInvId === p.id ? (
+                        <>
+                          <span className="text-xs text-orange-600">Сохр.?</span>
+                          <button
+                            onClick={saveInventory}
+                            disabled={savingInv}
+                            className="rounded bg-green-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-green-700 disabled:bg-green-400"
+                          >
+                            {savingInv ? "…" : "Да"}
+                          </button>
+                          <button
+                            onClick={() => setConfirmInvId(null)}
+                            className="rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-300"
+                          >
+                            Нет
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={requestInvConfirm}
+                            className="rounded bg-blue-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-blue-700"
+                          >
+                            ✓
+                          </button>
+                          <button
+                            onClick={cancelInvEdit}
+                            className="rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-300"
+                          >
+                            ✕
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ) : p.inventory != null ? (
+                    <span
+                      onDoubleClick={() => startInvEdit(p)}
+                      className={`cursor-pointer rounded px-1 py-0.5 transition-colors hover:bg-blue-50 ${
+                        p.inventory === 0 ? "font-medium text-red-500" : "text-gray-700"
+                      }`}
+                      title="Двойной клик для редактирования"
+                    >
+                      {p.measurement_unit === "running_meter"
+                        ? `${(p.inventory / 100).toLocaleString("ru-RU")} м`
+                        : `${p.inventory.toLocaleString("ru-RU")} шт`}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-2.5 text-xs text-gray-500">
+                  {new Date(p.created_at).toLocaleDateString("ru-RU")}
+                </td>
+                <td className="px-4 py-2.5 text-right">
+                  {confirmDelete === p.id ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-xs text-red-600">Удалить?</span>
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        disabled={deleting === p.id}
+                        className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:bg-red-400"
+                      >
+                        {deleting === p.id ? "..." : "Да"}
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(null)}
+                        className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-300"
+                      >
+                        Нет
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDelete(p.id)}
+                      className="rounded px-2 py-1 text-xs text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
+                    >
+                      Удалить
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {products.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
+                  Товары не найдены
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // Основной компонент
 // ============================================
 
 export default function AdminPage() {
   const [token, setToken] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AdminTab>("products");
   const [products, setProducts] = useState<ImportProduct[] | null>(null);
   const [fileName, setFileName] = useState("");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -409,12 +933,10 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Шапка */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Импорт товаров</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Загрузите JSON-файл с товарами для импорта в каталог
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Админ-панель</h1>
+          <p className="mt-1 text-sm text-gray-500">Управление товарами магазина</p>
         </div>
         <button
           onClick={() => setToken(null)}
@@ -424,6 +946,41 @@ export default function AdminPage() {
         </button>
       </div>
 
+      {/* Табы */}
+      <div className="mb-6 flex gap-1 rounded-xl bg-gray-100 p-1">
+        <button
+          onClick={() => setActiveTab("products")}
+          className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+            activeTab === "products"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Товары
+        </button>
+        <button
+          onClick={() => setActiveTab("import")}
+          className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+            activeTab === "import"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Импорт
+        </button>
+      </div>
+
+      {/* === Таб: Товары === */}
+      {activeTab === "products" && (
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Список товаров</h2>
+          <ExistingProductsList token={token} />
+        </div>
+      )}
+
+      {/* === Таб: Импорт === */}
+      {activeTab === "import" && (
+        <>
       {/* Шаг 1: Загрузка файла */}
       <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
@@ -587,6 +1144,8 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
