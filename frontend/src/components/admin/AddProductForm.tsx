@@ -49,7 +49,7 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
         .map((f) => `«${f.name}» (${(f.size / 1024).toFixed(0)} КБ)`)
         .join(", ");
       setError(
-        `Файлы превышают 200 КБ: ${names}. Сожмите их на сервисе iloveimg.com и попробуйте снова.`,
+        `Файлы превышают 300 КБ: ${names}. Сожмите их на сервисе iloveimg.com и попробуйте снова.`,
       );
       setShowCompressHint(true);
       if (e.target) e.target.value = "";
@@ -458,12 +458,12 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
         </h3>
         <p className="mb-2 text-xs text-gray-500">
           Первое изображение станет обложкой (thumbnail). Рекомендуемое
-          разрешение: 800×600 px, макс. размер: 200 КБ.
+          разрешение: 800×600 px, макс. размер: 300 КБ.
         </p>
 
         {showCompressHint && (
           <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            Фото превышает 200 КБ. Сожмите его с помощью сервиса:{" "}
+            Фото превышает 300 КБ. Сожмите его с помощью сервиса:{" "}
             <a
               href="https://www.iloveimg.com/ru/compress-image"
               target="_blank"

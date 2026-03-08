@@ -3,6 +3,7 @@ import Image from "next/image";
 import { getProductsList } from "@/lib/data/products";
 import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
+import { PerPageSelector } from "@/components/catalog/PerPageSelector";
 import type { ProductFilters } from "@/types/product";
 import { FABRIC_TYPE_LABELS, type FabricType } from "@/types/product";
 
@@ -21,6 +22,7 @@ const buildPageUrl = (filters: ProductFilters, targetPage: number): string => {
   if (filters.max_price) params.set("max_price", filters.max_price);
   if (filters.collection) params.set("collection", filters.collection);
   if (filters.sort) params.set("sort", filters.sort);
+  if (filters.limit) params.set("limit", String(filters.limit));
   if (targetPage > 1) params.set("page", String(targetPage));
   const qs = params.toString();
   return `/catalog${qs ? `?${qs}` : ""}`;
@@ -32,7 +34,7 @@ const buildPageUrl = (filters: ProductFilters, targetPage: number): string => {
  */
 export async function CatalogGrid({ filters }: CatalogGridProps) {
   const page = Number(filters.page) || 1;
-  const { products, total, page: currentPage, totalPages } =
+  const { products, total, page: currentPage, totalPages, limit } =
     await getProductsList(filters, page);
 
   if (products.length === 0) {
@@ -66,13 +68,16 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
         </div>
       )}
 
-      {/* Количество результатов */}
-      <p className="mb-4 text-sm text-gray-500">
-        Найдено: {total} товаров
-      </p>
+      {/* Панель: количество + селектор на страницу */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-gray-500">
+          Найдено: {total} товаров
+        </p>
+        <PerPageSelector current={limit} />
+      </div>
 
       {/* Сетка карточек */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {products.map((product) => {
           const variant = product.variants?.[0];
           const price = variant?.prices?.[0];
@@ -97,7 +102,7 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
                       width={400}
                       height={500}
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     />
                   ) : (
                     <FabricPlaceholder />

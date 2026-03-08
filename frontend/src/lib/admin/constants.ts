@@ -67,4 +67,4 @@ export const EMPTY_FORM = {
 };
 
 /** Максимальный размер изображения (байт) */
-export const MAX_IMAGE_SIZE = 200 * 1024; // 200 KB
+export const MAX_IMAGE_SIZE = 300 * 1024; // 300 KB

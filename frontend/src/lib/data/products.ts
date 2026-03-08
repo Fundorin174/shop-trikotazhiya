@@ -5,7 +5,7 @@
 import { medusaFetch } from "@/lib/medusa-client";
 import type { Product, ProductListResponse, ProductFilters } from "@/types/product";
 
-const PRODUCTS_LIMIT = 12;
+const PRODUCTS_LIMIT = 20;
 
 /** Поля для запроса — включаем variants с ценами, наличием, изображениями и metadata */
 const PRODUCT_FIELDS = "*variants,*variants.prices,*variants.inventory_quantity,*images,*metadata";

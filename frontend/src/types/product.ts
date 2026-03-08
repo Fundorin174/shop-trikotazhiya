@@ -171,5 +171,5 @@ export interface ProductFilters {
   collection?: string;
   sort?: string;
   page?: string;
-  limit?: number;
+  limit?: string;
 }

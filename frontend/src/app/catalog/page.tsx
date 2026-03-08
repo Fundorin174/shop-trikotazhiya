@@ -24,6 +24,7 @@ interface CatalogPageProps {
     collection?: string;
     sort?: string;
     page?: string;
+    limit?: string;
   };
 }
 

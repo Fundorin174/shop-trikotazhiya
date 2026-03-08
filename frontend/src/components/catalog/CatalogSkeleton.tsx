@@ -8,7 +8,7 @@ export const CatalogSkeleton = memo(() => {
   return (
     <div>
       <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200" />
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="overflow-hidden rounded-lg border border-gray-200">
             <div className="aspect-[4/5] animate-pulse bg-gray-200" />
