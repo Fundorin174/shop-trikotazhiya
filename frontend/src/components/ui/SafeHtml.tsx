@@ -1,7 +1,27 @@
 "use client";
 
-import DOMPurify from "dompurify";
 import { useMemo } from "react";
+
+/**
+ * Ленивая инициализация DOMPurify — работает только в браузере.
+ * На сервере (SSR) возвращает null, и мы используем fallback со strip-тегов.
+ */
+let _purify: { sanitize: (html: string, opts: object) => string } | null = null;
+
+function getPurify() {
+  if (typeof window === "undefined") return null;
+  if (_purify) return _purify;
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require("dompurify");
+  _purify = mod.default || mod;
+  return _purify;
+}
+
+/** Удалить HTML-теги (fallback для SSR) */
+function stripTags(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
+}
 
 /**
  * Допустимые HTML-теги для описаний товаров.
@@ -55,8 +75,14 @@ export function SafeHtml({ html, className, as: Tag = "div" }: SafeHtmlProps) {
       return null;
     }
 
+    const purify = getPurify();
+    if (!purify) {
+      // SSR — DOMPurify недоступен, возвращаем текст без тегов
+      return null;
+    }
+
     // Очищаем HTML от опасного содержимого
-    return DOMPurify.sanitize(html, {
+    return purify.sanitize(html, {
       ALLOWED_TAGS,
       ALLOWED_ATTR,
       ALLOW_DATA_ATTR: false,
@@ -78,8 +104,9 @@ export function SafeHtml({ html, className, as: Tag = "div" }: SafeHtmlProps) {
   }, [sanitized]);
 
   if (!finalHtml) {
-    // Обычный текст без HTML
-    return <Tag className={className}>{html}</Tag>;
+    // Обычный текст без HTML или SSR fallback
+    const hasHtml = /<[a-z][\s\S]*>/i.test(html);
+    return <Tag className={className}>{hasHtml ? stripTags(html) : html}</Tag>;
   }
 
   return (
