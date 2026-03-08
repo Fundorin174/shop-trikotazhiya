@@ -12,6 +12,14 @@ import {
 interface AddProductFormProps {
   token: string;
   onCreated?: () => void;
+  /** ID товара для режима редактирования */
+  editProductId?: string | null;
+  /** Начальные данные формы (для редактирования) */
+  initialData?: typeof import("@/lib/admin/constants").EMPTY_FORM | null;
+  /** Существующие URL изображений (для редактирования) */
+  existingImageUrls?: string[];
+  /** Колбэк отмены редактирования */
+  onCancelEdit?: () => void;
 }
 
 interface DuplicateInfo {
@@ -21,9 +29,19 @@ interface DuplicateInfo {
   sku: string;
 }
 
-/** Форма ручного добавления товара */
-export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
-  const [form, setForm] = useState(EMPTY_FORM);
+/** Форма ручного добавления / редактирования товара */
+export const AddProductForm = ({
+  token,
+  onCreated,
+  editProductId,
+  initialData,
+  existingImageUrls,
+  onCancelEdit,
+}: AddProductFormProps) => {
+  const isEditMode = !!editProductId;
+  const [form, setForm] = useState(initialData ?? EMPTY_FORM);
+  const [existingUrls, setExistingUrls] = useState<string[]>(existingImageUrls ?? []);
+  const [removedUrls, setRemovedUrls] = useState<string[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -74,6 +92,8 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
     imagePreviews.forEach((u) => URL.revokeObjectURL(u));
     setImages([]);
     setImagePreviews([]);
+    setExistingUrls([]);
+    setRemovedUrls([]);
     setError("");
     setSuccess("");
     setShowCompressHint(false);
@@ -166,16 +186,19 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
         product.discount_percent = parseFloat(form.discount_percent);
       if (form.discount_amount)
         product.discount_amount = parseFloat(form.discount_amount);
-      if (imageUrls.length > 0) {
-        product.thumbnail = imageUrls[0];
-        product.images = imageUrls;
+      // Объединяем существующие URL и новые загруженные
+      const allImageUrls = [...existingUrls, ...imageUrls];
+      if (allImageUrls.length > 0) {
+        product.thumbnail = allImageUrls[0];
+        product.images = allImageUrls;
       }
 
       // 3. Отправляем через существующий import API
+      // В режиме редактирования всегда overwrite
       const res = await fetch("/api/admin/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, products: [product], overwrite }),
+        body: JSON.stringify({ token, products: [product], overwrite: isEditMode || overwrite }),
       });
       const data: ImportResponse = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка создания");
@@ -186,10 +209,29 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
       }
 
       setSuccess(
-        overwrite
-          ? `Товар «${form.title}» успешно перезаписан!`
-          : `Товар «${form.title}» успешно создан!`,
+        isEditMode
+          ? `Товар «${form.title}» успешно обновлён!`
+          : overwrite
+            ? `Товар «${form.title}» успешно перезаписан!`
+            : `Товар «${form.title}» успешно создан!`,
       );
+
+      // Удаляем файлы, которые были убраны из товара
+      if (removedUrls.length > 0) {
+        try {
+          await fetch("/api/admin/upload", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              "x-admin-token": token,
+            },
+            body: JSON.stringify({ urls: removedUrls }),
+          });
+        } catch {
+          // Не блокируем — товар уже сохранён
+        }
+      }
+
       resetForm();
       onCreated?.();
     } catch (err) {
@@ -198,7 +240,7 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
       setSubmitting(false);
       setUploading(false);
     }
-  }, [form, images, token, onCreated]);
+  }, [form, images, token, onCreated, isEditMode, existingUrls, removedUrls]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,6 +248,12 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
     setSuccess("");
 
     if (!validateForm()) return;
+
+    // В режиме редактирования — сразу submit с overwrite
+    if (isEditMode) {
+      await submitProduct(true);
+      return;
+    }
 
     // Проверяем, существует ли товар с таким SKU
     try {
@@ -316,10 +364,12 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
           <div>
             <label className={labelCls}>SKU *</label>
             <input
-              className={inputCls}
+              className={`${inputCls}${isEditMode ? " bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
               value={form.sku}
               onChange={(e) => updateField("sku", e.target.value)}
               placeholder="00301"
+              disabled={isEditMode}
+              title={isEditMode ? "SKU нельзя изменить при редактировании" : undefined}
             />
           </div>
           <div>
@@ -472,6 +522,48 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
             >
               iLoveIMG — Сжать изображение ↗
             </a>
+          </div>
+        )}
+
+        {/* Существующие изображения (режим редактирования) */}
+        {existingUrls.length > 0 && (
+          <div className="mb-3">
+            <p className="mb-1 text-xs font-medium text-gray-500">Текущие фото:</p>
+            <div className="flex flex-wrap gap-2">
+              {existingUrls.map((url, idx) => (
+                <div key={url} className="group relative">
+                  <img
+                    src={url}
+                    alt={`Фото ${idx + 1}`}
+                    className={`h-20 w-20 rounded-lg border-2 object-cover ${
+                      idx === 0 && images.length === 0 ? "border-blue-500" : "border-gray-200"
+                    }`}
+                  />
+                  {idx === 0 && images.length === 0 && (
+                    <span className="absolute -top-1.5 left-1 rounded bg-blue-500 px-1 text-[9px] font-bold text-white">
+                      Обложка
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = existingUrls[idx];
+                      setExistingUrls((prev) => prev.filter((_, i) => i !== idx));
+                      setRemovedUrls((prev) => [...prev, url]);
+                    }}
+                    className="absolute -right-1.5 -top-1.5 hidden rounded-full bg-red-500 p-0.5 text-white shadow group-hover:block"
+                  >
+                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -689,16 +781,31 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
           {uploading
             ? "Загрузка фото..."
             : submitting
-              ? "Создание..."
-              : "Создать товар"}
+              ? isEditMode
+                ? "Сохранение..."
+                : "Создание..."
+              : isEditMode
+                ? "Сохранить изменения"
+                : "Создать товар"}
         </button>
-        <button
-          type="button"
-          onClick={resetForm}
-          className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100"
-        >
-          Очистить
-        </button>
+        {isEditMode && onCancelEdit && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+          >
+            Отмена
+          </button>
+        )}
+        {!isEditMode && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+          >
+            Очистить
+          </button>
+        )}
       </div>
     </form>
   );

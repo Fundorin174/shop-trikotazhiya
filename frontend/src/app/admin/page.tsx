@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { AdminTab } from "@/types/admin";
+import { EMPTY_FORM } from "@/lib/admin/constants";
 import { useImport } from "@/hooks/useImport";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { ExistingProductsList } from "@/components/admin/ExistingProductsList";
@@ -52,6 +53,39 @@ function AdminDashboard({
     downloadTemplate,
   } = useImport(token);
 
+  // Состояние редактирования товара
+  const [editProductId, setEditProductId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<typeof EMPTY_FORM | null>(null);
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+  const [loadingEdit, setLoadingEdit] = useState(false);
+
+  const handleEditProduct = useCallback(async (productId: string) => {
+    setLoadingEdit(true);
+    try {
+      const res = await fetch(`/api/admin/products/${productId}`, {
+        headers: { "x-admin-token": token },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка загрузки товара");
+
+      setEditProductId(productId);
+      setEditFormData(data.product);
+      setEditImageUrls(data.imageUrls || []);
+      setActiveTab("add");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Ошибка загрузки товара");
+    } finally {
+      setLoadingEdit(false);
+    }
+  }, [token, setActiveTab]);
+
+  const cancelEdit = useCallback(() => {
+    setEditProductId(null);
+    setEditFormData(null);
+    setEditImageUrls([]);
+    setActiveTab("products");
+  }, [setActiveTab]);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Шапка */}
@@ -81,7 +115,15 @@ function AdminDashboard({
         ).map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => setActiveTab(key)}
+            onClick={() => {
+              // При переключении с редактирования на другой таб — сбрасываем edit
+              if (editProductId && key !== "add") {
+                setEditProductId(null);
+                setEditFormData(null);
+                setEditImageUrls([]);
+              }
+              setActiveTab(key);
+            }}
             className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
               activeTab === key
                 ? "bg-white text-gray-900 shadow-sm"
@@ -99,7 +141,16 @@ function AdminDashboard({
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
             Список товаров
           </h2>
-          <ExistingProductsList token={token} />
+          <ExistingProductsList token={token} onEdit={handleEditProduct} />
+          {loadingEdit && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-blue-600">
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+              </svg>
+              Загрузка данных товара...
+            </div>
+          )}
         </div>
       )}
 
@@ -272,15 +323,25 @@ function AdminDashboard({
         </>
       )}
 
-      {/* === Таб: Добавить === */}
+      {/* === Таб: Добавить / Редактировать === */}
       {activeTab === "add" && (
         <div className="rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            Добавить товар
+            {editProductId ? "Редактировать товар" : "Добавить товар"}
           </h2>
           <AddProductForm
+            key={editProductId || "new"}
             token={token}
-            onCreated={() => setActiveTab("products")}
+            onCreated={() => {
+              setEditProductId(null);
+              setEditFormData(null);
+              setEditImageUrls([]);
+              setActiveTab("products");
+            }}
+            editProductId={editProductId}
+            initialData={editFormData}
+            existingImageUrls={editImageUrls}
+            onCancelEdit={cancelEdit}
           />
         </div>
       )}

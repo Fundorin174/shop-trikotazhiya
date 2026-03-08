@@ -16,7 +16,7 @@ interface ProductPageProps {
 // При отсутствии бэкенда — возвращаем пустой массив (все страницы рендерятся на лету)
 export async function generateStaticParams() {
   try {
-    const { products } = await getProductsList({ limit: 100 });
+    const { products } = await getProductsList({ limit: "100" });
     return products.map((p) => ({ handle: p.handle }));
   } catch {
     return [];
