@@ -22,12 +22,13 @@ import type { ImportProduct, ImportResult } from "@/types/admin";
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, products, salesChannelId, stockLocationId } =
+    const { token, products, salesChannelId, stockLocationId, overwrite } =
       (await request.json()) as {
         token: string;
         products: ImportProduct[];
         salesChannelId?: string;
         stockLocationId?: string;
+        overwrite?: boolean;
       };
 
     if (!token) {
@@ -77,11 +78,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ---- Проверяем существующие handle (идемпотентность) ----
-    const existingRes = await medusaApi("GET", "/admin/products?limit=200", token);
-    const existingHandles = new Set(
-      (existingRes?.products ?? []).map((p: { handle: string }) => p.handle)
+    // ---- Проверяем существующие handle и SKU (идемпотентность) ----
+    const existingRes = await medusaApi(
+      "GET",
+      "/admin/products?limit=200&fields=*variants",
+      token,
     );
+    const existingProducts = existingRes?.products ?? [];
+    const existingHandles = new Set(
+      existingProducts.map((p: { handle: string }) => p.handle),
+    );
+    // Карта SKU → product id для поиска дубликатов
+    const skuToProductId = new Map<string, string>();
+    for (const p of existingProducts) {
+      for (const v of p.variants ?? []) {
+        if (v.sku) skuToProductId.set(v.sku, p.id);
+      }
+    }
 
     // ---- Импортируем товары ----
     const results: ImportResult[] = [];
@@ -89,15 +102,45 @@ export async function POST(request: NextRequest) {
     for (const item of products) {
       const handle = item.handle || transliterate(item.title);
 
-      // Проверка дубликата
-      if (existingHandles.has(handle)) {
+      // Проверка дубликата по handle или SKU
+      const existingProductId = skuToProductId.get(item.sku);
+      const isDuplicate = existingHandles.has(handle) || !!existingProductId;
+
+      if (isDuplicate && !overwrite) {
         results.push({
           sku: item.sku,
           title: item.title,
           success: false,
-          message: `Товар с handle «${handle}» уже существует. Пропущен.`,
+          message: `Товар с SKU «${item.sku}» уже существует. Пропущен.`,
         });
         continue;
+      }
+
+      // Если overwrite — удаляем старый товар перед созданием нового
+      if (isDuplicate && overwrite) {
+        try {
+          // Удаляем по product id (найденный по SKU или по handle)
+          const deleteId =
+            existingProductId ||
+            existingProducts.find(
+              (p: { handle: string; id: string }) => p.handle === handle,
+            )?.id;
+          if (deleteId) {
+            await medusaApi("DELETE", `/admin/products/${deleteId}`, token);
+            existingHandles.delete(handle);
+            skuToProductId.delete(item.sku);
+            // Пауза после удаления
+            await new Promise((r) => setTimeout(r, 300));
+          }
+        } catch (delErr) {
+          results.push({
+            sku: item.sku,
+            title: item.title,
+            success: false,
+            message: `Ошибка удаления старого товара: ${delErr instanceof Error ? delErr.message : String(delErr)}`,
+          });
+          continue;
+        }
       }
 
       try {
@@ -211,11 +254,12 @@ export async function POST(request: NextRequest) {
         }
 
         existingHandles.add(handle);
+        skuToProductId.set(item.sku, product.id);
         results.push({
           sku: item.sku,
           title: item.title,
           success: true,
-          message: "Создан успешно",
+          message: overwrite && isDuplicate ? "Перезаписан успешно" : "Создан успешно",
           productId: product.id,
         });
       } catch (err) {

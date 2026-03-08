@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { ImportProduct, ImportResponse } from "@/types/admin";
 import {
   VALID_FABRIC_TYPES,
@@ -14,6 +14,13 @@ interface AddProductFormProps {
   onCreated?: () => void;
 }
 
+interface DuplicateInfo {
+  id: string;
+  title: string;
+  handle: string;
+  sku: string;
+}
+
 /** Форма ручного добавления товара */
 export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -24,6 +31,8 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showCompressHint, setShowCompressHint] = useState(false);
+  const [duplicateProduct, setDuplicateProduct] = useState<DuplicateInfo | null>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   const updateField = (field: string, value: string) => {
@@ -71,38 +80,40 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
     if (imgInputRef.current) imgInputRef.current.value = "";
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    // Валидация
+  // Валидация полей формы
+  const validateForm = (): boolean => {
     if (!form.title.trim()) {
       setError("Укажите название");
-      return;
+      return false;
     }
     if (!form.sku.trim()) {
       setError("Укажите SKU");
-      return;
+      return false;
     }
     if (!form.price || parseFloat(form.price) <= 0) {
       setError("Укажите корректную цену");
-      return;
+      return false;
     }
     if (!form.fabric_type) {
       setError("Выберите тип ткани");
-      return;
+      return false;
     }
     if (!form.composition.trim()) {
       setError("Укажите состав");
-      return;
+      return false;
     }
     if (!form.width_cm || parseFloat(form.width_cm) <= 0) {
       setError("Укажите ширину");
-      return;
+      return false;
     }
+    return true;
+  };
 
+  // Отправка товара на сервер (с опциональной перезаписью)
+  const submitProduct = useCallback(async (overwrite = false) => {
     setSubmitting(true);
+    setShowDuplicateModal(false);
+    setDuplicateProduct(null);
 
     try {
       // 1. Загружаем изображения
@@ -164,7 +175,7 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
       const res = await fetch("/api/admin/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, products: [product] }),
+        body: JSON.stringify({ token, products: [product], overwrite }),
       });
       const data: ImportResponse = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка создания");
@@ -174,7 +185,11 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
         throw new Error(result.message);
       }
 
-      setSuccess(`Товар «${form.title}» успешно создан!`);
+      setSuccess(
+        overwrite
+          ? `Товар «${form.title}» успешно перезаписан!`
+          : `Товар «${form.title}» успешно создан!`,
+      );
       resetForm();
       onCreated?.();
     } catch (err) {
@@ -183,6 +198,38 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
       setSubmitting(false);
       setUploading(false);
     }
+  }, [form, images, token, onCreated]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!validateForm()) return;
+
+    // Проверяем, существует ли товар с таким SKU
+    try {
+      setSubmitting(true);
+      const checkRes = await fetch(
+        `/api/admin/check-sku?sku=${encodeURIComponent(form.sku.trim())}`,
+        { headers: { "x-admin-token": token } },
+      );
+      const checkData = await checkRes.json();
+
+      if (checkData.exists) {
+        // Товар с таким SKU уже есть — показываем модалку
+        setDuplicateProduct(checkData.product);
+        setShowDuplicateModal(true);
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      // Если проверка не удалась — продолжаем создание
+    }
+
+    // SKU свободен — создаём как обычно
+    setSubmitting(false);
+    await submitProduct(false);
   };
 
   const inputCls =
@@ -199,6 +246,55 @@ export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
       {success && (
         <div className="rounded-xl bg-green-50 p-3 text-sm text-green-700">
           {success}
+        </div>
+      )}
+
+      {/* Модалка подтверждения перезаписи дубликата */}
+      {showDuplicateModal && duplicateProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+                <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Товар уже существует
+              </h3>
+            </div>
+
+            <p className="mb-2 text-sm text-gray-600">
+              В базе данных уже есть товар с SKU <span className="font-mono font-semibold text-gray-900">{duplicateProduct.sku}</span>:
+            </p>
+            <div className="mb-4 rounded-lg bg-gray-50 p-3">
+              <p className="text-sm font-medium text-gray-900">{duplicateProduct.title}</p>
+              <p className="mt-0.5 text-xs text-gray-500">handle: {duplicateProduct.handle}</p>
+            </div>
+            <p className="mb-5 text-sm text-gray-600">
+              Хотите перезаписать существующий товар новыми данными? Старый товар будет удалён и создан заново.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDuplicateModal(false);
+                  setDuplicateProduct(null);
+                }}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={() => submitProduct(true)}
+                className="flex-1 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-amber-700"
+              >
+                Перезаписать
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
