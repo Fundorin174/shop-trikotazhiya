@@ -33,7 +33,7 @@ export default function CatalogPage({ searchParams }: CatalogPageProps) {
     searchParams.color ||
     searchParams.min_price ||
     searchParams.max_price ||
-    searchParams.sort
+    (searchParams.sort && searchParams.sort !== "created_at_desc")
   );
 
   return (

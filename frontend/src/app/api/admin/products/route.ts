@@ -6,32 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-
-const MEDUSA_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
-async function medusaApi(
-  method: string,
-  path: string,
-  token: string,
-  body?: unknown
-) {
-  const opts: RequestInit = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  };
-  if (body) opts.body = JSON.stringify(body);
-
-  const res = await fetch(`${MEDUSA_URL}${path}`, opts);
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`Medusa ${method} ${path} → ${res.status}: ${text.substring(0, 300)}`);
-  }
-  return text ? JSON.parse(text) : {};
-}
+import { medusaApi } from "@/lib/admin/medusa-api";
 
 /** GET — получить список товаров */
 export async function GET(request: NextRequest) {

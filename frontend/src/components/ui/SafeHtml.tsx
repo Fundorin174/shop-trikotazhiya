@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
 /**
  * Ленивая инициализация DOMPurify — работает только в браузере.
- * На сервере (SSR) возвращает null, и мы используем fallback со strip-тегов.
  */
 let _purify: { sanitize: (html: string, opts: object) => string } | null = null;
 
@@ -18,9 +17,14 @@ function getPurify() {
   return _purify;
 }
 
-/** Удалить HTML-теги (fallback для SSR) */
+/** Удалить HTML-теги (fallback для SSR / plain-text) */
 function stripTags(html: string): string {
   return html.replace(/<[^>]*>/g, "");
+}
+
+/** Проверить, содержит ли строка HTML-теги */
+function hasHtmlTags(html: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(html);
 }
 
 /**
@@ -48,10 +52,31 @@ const ALLOWED_ATTR = [
   "class", "style",
 ];
 
-/**
- * Безопасные CSS-свойства (через style="...").
- * DOMPurify фильтрует опасные свойства вроде expression(), url() и т.д.
- */
+/** Санитизация HTML + добавление rel к ссылкам */
+function sanitizeHtml(html: string): string | null {
+  if (!hasHtmlTags(html)) return null;
+
+  const purify = getPurify();
+  if (!purify) return null;
+
+  const clean = purify.sanitize(html, {
+    ALLOWED_TAGS,
+    ALLOWED_ATTR,
+    ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ["target"],
+  });
+
+  if (!clean) return null;
+
+  // Добавляем rel="noopener noreferrer" ко всем <a target="_blank">
+  return clean.replace(
+    /<a\s([^>]*target="_blank"[^>]*)>/gi,
+    (match: string, attrs: string) => {
+      if (attrs.includes("rel=")) return match;
+      return `<a ${attrs} rel="noopener noreferrer">`;
+    },
+  );
+}
 
 interface SafeHtmlProps {
   html: string;
@@ -63,56 +88,34 @@ interface SafeHtmlProps {
  * Компонент для безопасного рендера HTML-контента.
  * Использует DOMPurify для очистки от XSS-инъекций.
  *
+ * SSR отдаёт текст без тегов (DOMPurify недоступен на сервере),
+ * после гидрации клиент подставляет полную HTML-разметку.
+ *
  * Если контент не содержит HTML-тегов — рендерится как обычный текст.
  */
 export function SafeHtml({ html, className, as: Tag = "div" }: SafeHtmlProps) {
-  const sanitized = useMemo(() => {
-    // Проверяем, содержит ли текст HTML-теги
-    const hasHtml = /<[a-z][\s\S]*>/i.test(html);
+  // На SSR и при первом клиентском рендере — null (plain-text fallback).
+  // После useEffect DOMPurify обрабатывает HTML → компонент обновляется.
+  const [safeHtml, setSafeHtml] = useState<string | null>(null);
 
-    if (!hasHtml) {
-      // Обычный текст — возвращаем как есть (React экранирует автоматически)
-      return null;
-    }
-
-    const purify = getPurify();
-    if (!purify) {
-      // SSR — DOMPurify недоступен, возвращаем текст без тегов
-      return null;
-    }
-
-    // Очищаем HTML от опасного содержимого
-    return purify.sanitize(html, {
-      ALLOWED_TAGS,
-      ALLOWED_ATTR,
-      ALLOW_DATA_ATTR: false,
-      // Все ссылки открываются в новой вкладке с безопасными атрибутами
-      ADD_ATTR: ["target"],
-    });
+  useEffect(() => {
+    const result = sanitizeHtml(html);
+    setSafeHtml(result);
   }, [html]);
 
-  // Для ссылок: добавляем rel="noopener noreferrer" ко всем <a target="_blank">
-  const finalHtml = useMemo(() => {
-    if (!sanitized) return null;
-    return sanitized.replace(
-      /<a\s([^>]*target="_blank"[^>]*)>/gi,
-      (match, attrs) => {
-        if (attrs.includes("rel=")) return match;
-        return `<a ${attrs} rel="noopener noreferrer">`;
-      }
+  if (safeHtml) {
+    return (
+      <Tag
+        className={className}
+        dangerouslySetInnerHTML={{ __html: safeHtml }}
+      />
     );
-  }, [sanitized]);
-
-  if (!finalHtml) {
-    // Обычный текст без HTML или SSR fallback
-    const hasHtml = /<[a-z][\s\S]*>/i.test(html);
-    return <Tag className={className}>{hasHtml ? stripTags(html) : html}</Tag>;
   }
 
+  // SSR / начальный рендер / обычный текст
   return (
-    <Tag
-      className={className}
-      dangerouslySetInnerHTML={{ __html: finalHtml }}
-    />
+    <Tag className={className}>
+      {hasHtmlTags(html) ? stripTags(html) : html}
+    </Tag>
   );
 }

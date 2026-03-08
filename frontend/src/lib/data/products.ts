@@ -45,7 +45,7 @@ export async function getProductsList(
 
   if (filters.type) params.set("type", filters.type);
   if (filters.color) params.set("color", filters.color);
-  if (filters.sort) params.set("sort", filters.sort);
+  params.set("sort", filters.sort || "created_at_desc");
   if (filters.min_price) params.set("min_price", filters.min_price);
   if (filters.max_price) params.set("max_price", filters.max_price);
 
