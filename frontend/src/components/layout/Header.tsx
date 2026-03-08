@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { ShoppingCart, Menu, X, Search } from "lucide-react";
+import { ShoppingCart, Menu, X } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 
 /**
@@ -60,15 +60,8 @@ export const Header = () => {
             ))}
           </nav>
 
-          {/* Правая часть: поиск + корзина */}
+          {/* Правая часть: корзина */}
           <div className="flex items-center gap-4">
-            <button
-              aria-label="Поиск"
-              className="rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-primary-700"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-
             <Link
               href="/cart"
               className="relative rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-primary-700"
