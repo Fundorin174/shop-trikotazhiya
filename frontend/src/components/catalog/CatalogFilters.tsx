@@ -12,7 +12,7 @@ interface CatalogFiltersProps {
  * Боковая панель фильтров каталога тканей.
  * Фильтрация через URL search params (SSR-совместимо).
  */
-export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
+export const CatalogFilters = ({ currentFilters }: CatalogFiltersProps) => {
   const {
     minPrice,
     setMinPrice,
@@ -130,4 +130,4 @@ export function CatalogFilters({ currentFilters }: CatalogFiltersProps) {
       </fieldset>
     </div>
   );
-}
+};

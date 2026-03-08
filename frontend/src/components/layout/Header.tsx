@@ -10,7 +10,7 @@ import { useCartStore } from "@/store/cart-store";
  * Шапка сайта — навигация, поиск, корзина.
  * Client Component из-за мобильного меню и счётчика корзины.
  */
-export function Header() {
+export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const itemCount = useCartStore((s) => s.itemCount);
   const refreshCart = useCartStore((s) => s.refreshCart);
@@ -115,4 +115,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+};

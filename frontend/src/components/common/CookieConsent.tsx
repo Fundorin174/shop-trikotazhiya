@@ -8,7 +8,7 @@ import Link from "next/link";
  * Требование 152-ФЗ: уведомление об использовании cookie + ссылка на политику конфиденциальности.
  * Согласие сохраняется в localStorage.
  */
-export function CookieConsent() {
+export const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -52,4 +52,4 @@ export function CookieConsent() {
       </div>
     </div>
   );
-}
+};

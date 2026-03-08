@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { CheckoutFormData, CheckoutStep } from "@/types/checkout";
 import { FieldError, inputCls } from "./FieldHelpers";
 
@@ -17,7 +18,7 @@ interface ContactsStepProps {
 /**
  * Шаг 1 — Контактные данные (имя, фамилия, email, телефон).
  */
-export function ContactsStep({
+export const ContactsStep = memo(({
   form,
   updateField,
   fieldErrors,
@@ -26,7 +27,7 @@ export function ContactsStep({
   isContactsValid,
   showErrors,
   goToDelivery,
-}: ContactsStepProps) {
+}: ContactsStepProps) => {
   return (
     <section
       className={`rounded-lg border p-6 transition-opacity ${
@@ -137,4 +138,6 @@ export function ContactsStep({
       )}
     </section>
   );
-}
+});
+
+ContactsStep.displayName = "ContactsStep";

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { ImportResult } from "@/types/admin";
 
 interface ResultsPanelProps {
@@ -5,7 +6,7 @@ interface ResultsPanelProps {
 }
 
 /** Панель результатов импорта (успех / ошибки) */
-export function ResultsPanel({ results }: ResultsPanelProps) {
+export const ResultsPanel = memo(({ results }: ResultsPanelProps) => {
   const success = results.filter((r) => r.success);
   const failed = results.filter((r) => !r.success);
 
@@ -57,4 +58,6 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
       </div>
     </div>
   );
-}
+});
+
+ResultsPanel.displayName = "ResultsPanel";

@@ -15,7 +15,7 @@ import { CartSummary } from "./CartSummary";
  *        total = unit_price × qty_cm → уже в копейках.
  * Штучные: unit_price = копейки, total = unit_price × qty → копейки.
  */
-export function CartContent() {
+export const CartContent = () => {
   const { items, total, loading, refreshCart, updateItem, removeItem, productImages } =
     useCartStore();
 
@@ -55,4 +55,4 @@ export function CartContent() {
       <CartSummary total={total} />
     </div>
   );
-}
+};

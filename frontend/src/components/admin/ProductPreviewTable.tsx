@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { ImportProduct } from "@/types/admin";
 import { FABRIC_LABELS } from "@/lib/admin/constants";
 
@@ -6,7 +7,7 @@ interface ProductPreviewTableProps {
 }
 
 /** Таблица предпросмотра товаров перед импортом */
-export function ProductPreviewTable({ products }: ProductPreviewTableProps) {
+export const ProductPreviewTable = memo(({ products }: ProductPreviewTableProps) => {
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
       <table className="w-full text-sm">
@@ -55,4 +56,6 @@ export function ProductPreviewTable({ products }: ProductPreviewTableProps) {
       </table>
     </div>
   );
-}
+});
+
+ProductPreviewTable.displayName = "ProductPreviewTable";

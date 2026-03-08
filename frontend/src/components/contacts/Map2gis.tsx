@@ -1,6 +1,8 @@
 "use client";
 
-export function Map2gis() {
+import { memo } from "react";
+
+export const Map2gis = memo(() => {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
       <iframe
@@ -16,4 +18,6 @@ export function Map2gis() {
       />
     </div>
   );
-}
+});
+
+Map2gis.displayName = "Map2gis";

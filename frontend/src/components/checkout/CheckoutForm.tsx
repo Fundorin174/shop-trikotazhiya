@@ -17,7 +17,7 @@ import { OrderSummary } from "./OrderSummary";
  * 3. Покупатель перенаправляется на ЮKassa для оплаты
  * 4. После оплаты — redirect на /checkout/success
  */
-export function CheckoutForm() {
+export const CheckoutForm = () => {
   const checkout = useCheckoutForm();
 
   return (
@@ -103,4 +103,4 @@ export function CheckoutForm() {
       />
     </div>
   );
-}
+};

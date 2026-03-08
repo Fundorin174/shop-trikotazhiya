@@ -93,7 +93,7 @@ interface SafeHtmlProps {
  *
  * Если контент не содержит HTML-тегов — рендерится как обычный текст.
  */
-export function SafeHtml({ html, className, as: Tag = "div" }: SafeHtmlProps) {
+export const SafeHtml = ({ html, className, as: Tag = "div" }: SafeHtmlProps) => {
   // На SSR и при первом клиентском рендере — null (plain-text fallback).
   // После useEffect DOMPurify обрабатывает HTML → компонент обновляется.
   const [safeHtml, setSafeHtml] = useState<string | null>(null);
@@ -118,4 +118,4 @@ export function SafeHtml({ html, className, as: Tag = "div" }: SafeHtmlProps) {
       {hasHtmlTags(html) ? stripTags(html) : html}
     </Tag>
   );
-}
+};

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Minus, Plus } from "lucide-react";
 import { cmToMeters } from "@/lib/utils";
 
@@ -15,14 +16,14 @@ interface FabricQuantityControlProps {
 /**
  * Управление количеством для тканей (шаг 0.1 м = 10 см).
  */
-export function FabricQuantityControl({
+export const FabricQuantityControl = memo(({
   quantityCm,
   stepCm,
   minCm,
   loading,
   onUpdate,
   onRemove,
-}: FabricQuantityControlProps) {
+}: FabricQuantityControlProps) => {
   const displayMeters = cmToMeters(quantityCm);
 
   const decrease = () => {
@@ -64,7 +65,9 @@ export function FabricQuantityControl({
       <span className="text-xs text-gray-500">пог. м</span>
     </div>
   );
-}
+});
+
+FabricQuantityControl.displayName = "FabricQuantityControl";
 
 interface PieceQuantityControlProps {
   quantity: number;
@@ -76,12 +79,12 @@ interface PieceQuantityControlProps {
 /**
  * Управление количеством для штучных товаров.
  */
-export function PieceQuantityControl({
+export const PieceQuantityControl = memo(({
   quantity,
   loading,
   onUpdate,
   onRemove,
-}: PieceQuantityControlProps) {
+}: PieceQuantityControlProps) => {
   return (
     <div className="flex items-center rounded-lg border border-gray-300">
       <button
@@ -106,4 +109,6 @@ export function PieceQuantityControl({
       </button>
     </div>
   );
-}
+});
+
+PieceQuantityControl.displayName = "PieceQuantityControl";

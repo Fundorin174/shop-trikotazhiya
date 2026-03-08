@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import {
@@ -14,9 +15,9 @@ import type { MedusaCartLineItem } from "@/lib/data/cart";
 import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
 import { FabricQuantityControl, PieceQuantityControl } from "./QuantityControls";
 
-function isFabricItem(item: MedusaCartLineItem): boolean {
+const isFabricItem = (item: MedusaCartLineItem): boolean => {
   return item.metadata?.measurement_unit === "running_meter";
-}
+};
 
 interface CartItemRowProps {
   item: MedusaCartLineItem;
@@ -29,13 +30,13 @@ interface CartItemRowProps {
 /**
  * Одна строка товара в корзине.
  */
-export function CartItemRow({
+export const CartItemRow = memo(({
   item,
   productImage,
   loading,
   onUpdate,
   onRemove,
-}: CartItemRowProps) {
+}: CartItemRowProps) => {
   const fabric = isFabricItem(item);
   const displayQty = fabric ? cmToMeters(item.quantity) : item.quantity;
   const displayUnitPrice = fabric
@@ -123,4 +124,6 @@ export function CartItemRow({
       </div>
     </li>
   );
-}
+});
+
+CartItemRow.displayName = "CartItemRow";

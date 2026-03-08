@@ -30,7 +30,7 @@ interface CdekCitySuggestProps {
 // Компонент
 // ============================================
 
-export function CdekCitySuggest({
+export const CdekCitySuggest = ({
   value,
   onChange,
   onCitySelect,
@@ -39,7 +39,7 @@ export function CdekCitySuggest({
   placeholder = "Начните вводить город",
   id,
   required,
-}: CdekCitySuggestProps) {
+}: CdekCitySuggestProps) => {
   const [suggestions, setSuggestions] = useState<CdekCity[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -205,4 +205,4 @@ export function CdekCitySuggest({
       )}
     </div>
   );
-}
+};

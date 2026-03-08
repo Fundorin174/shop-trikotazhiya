@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
 
@@ -10,7 +12,7 @@ const SITE_URL =
  *
  * @see https://developers.google.com/search/docs/appearance/structured-data/local-business
  */
-export function OrganizationJsonLd() {
+export const OrganizationJsonLd = memo(() => {
   const organizationLd = {
     "@context": "https://schema.org",
     "@type": ["Organization", "Store"],
@@ -90,4 +92,6 @@ export function OrganizationJsonLd() {
       />
     </>
   );
-}
+});
+
+OrganizationJsonLd.displayName = "OrganizationJsonLd";

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { CheckoutStep } from "@/types/checkout";
 
 interface PaymentStepProps {
@@ -10,7 +11,7 @@ interface PaymentStepProps {
 /**
  * Шаг 3 — Способ оплаты (ЮKassa).
  */
-export function PaymentStep({ step, setStep }: PaymentStepProps) {
+export const PaymentStep = memo(({ step, setStep }: PaymentStepProps) => {
   return (
     <section
       className={`rounded-lg border p-6 transition-opacity ${
@@ -61,4 +62,6 @@ export function PaymentStep({ step, setStep }: PaymentStepProps) {
       )}
     </section>
   );
-}
+});
+
+PaymentStep.displayName = "PaymentStep";

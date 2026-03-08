@@ -15,11 +15,11 @@ interface ProductGalleryProps {
  * Галерея изображений товара — основное фото + миниатюры.
  * Поддержка увеличения и переключения.
  */
-export function ProductGallery({
+export const ProductGallery = ({
   images,
   thumbnail,
   title,
-}: ProductGalleryProps) {
+}: ProductGalleryProps) => {
   // Собираем все изображения: thumbnail + images
   const allImages = [
     ...(thumbnail ? [{ id: "thumb", url: thumbnail }] : []),
@@ -77,4 +77,4 @@ export function ProductGallery({
       )}
     </div>
   );
-}
+};

@@ -7,7 +7,7 @@ interface LoginFormProps {
 }
 
 /** Форма авторизации в админ-панели */
-export function LoginForm({ onLogin }: LoginFormProps) {
+export const LoginForm = ({ onLogin }: LoginFormProps) => {
   const [email, setEmail] = useState("admin@trikotazhiya.ru");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -99,4 +99,4 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       </div>
     </div>
   );
-}
+};

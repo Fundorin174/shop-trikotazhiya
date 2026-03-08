@@ -11,7 +11,7 @@ interface ColorDropdownProps {
 /**
  * Выпадающий фильтр по цвету.
  */
-export function ColorDropdown({ currentColor, onSelect }: ColorDropdownProps) {
+export const ColorDropdown = ({ currentColor, onSelect }: ColorDropdownProps) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -116,4 +116,4 @@ export function ColorDropdown({ currentColor, onSelect }: ColorDropdownProps) {
       )}
     </div>
   );
-}
+};

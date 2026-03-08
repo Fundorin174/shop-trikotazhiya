@@ -13,7 +13,7 @@ interface CatalogGridProps {
 /**
  * Формирует URL для страницы пагинации, сохраняя текущие фильтры.
  */
-function buildPageUrl(filters: ProductFilters, targetPage: number): string {
+const buildPageUrl = (filters: ProductFilters, targetPage: number): string => {
   const params = new URLSearchParams();
   if (filters.type) params.set("type", filters.type);
   if (filters.color) params.set("color", filters.color);
@@ -24,7 +24,7 @@ function buildPageUrl(filters: ProductFilters, targetPage: number): string {
   if (targetPage > 1) params.set("page", String(targetPage));
   const qs = params.toString();
   return `/catalog${qs ? `?${qs}` : ""}`;
-}
+};
 
 /**
  * Сетка товаров каталога.

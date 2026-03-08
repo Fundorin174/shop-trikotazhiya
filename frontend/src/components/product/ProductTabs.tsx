@@ -12,7 +12,7 @@ interface ProductTabsProps {
 /**
  * Вкладки карточки товара: Описание, Характеристики, Отзывы.
  */
-export function ProductTabs({ product, fabricData }: ProductTabsProps) {
+export const ProductTabs = ({ product, fabricData }: ProductTabsProps) => {
   const meta = fabricData as FabricMetadata | null;
   const [activeTab, setActiveTab] = useState<"description" | "specs" | "reviews">(
     "description"
@@ -88,4 +88,4 @@ export function ProductTabs({ product, fabricData }: ProductTabsProps) {
       </div>
     </div>
   );
-}
+};

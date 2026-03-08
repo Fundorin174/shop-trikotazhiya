@@ -9,7 +9,7 @@ interface ExistingProductsListProps {
 }
 
 /** Список существующих товаров с сортировкой, inline-редактированием и удалением */
-export function ExistingProductsList({ token }: ExistingProductsListProps) {
+export const ExistingProductsList = ({ token }: ExistingProductsListProps) => {
   const {
     products,
     sortedProducts,
@@ -389,4 +389,4 @@ export function ExistingProductsList({ token }: ExistingProductsListProps) {
       </div>
     </div>
   );
-}
+};

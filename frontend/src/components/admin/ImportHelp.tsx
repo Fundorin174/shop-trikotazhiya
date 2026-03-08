@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { VALID_FABRIC_TYPES, FABRIC_LABELS } from "@/lib/admin/constants";
 
 /** Справка по импорту (формат файла, обязательные поля, типы тканей) */
-export function ImportHelp() {
+export const ImportHelp = memo(() => {
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
       <h2 className="mb-3 text-lg font-semibold text-gray-900">Справка</h2>
@@ -84,4 +85,6 @@ export function ImportHelp() {
       </div>
     </div>
   );
-}
+});
+
+ImportHelp.displayName = "ImportHelp";

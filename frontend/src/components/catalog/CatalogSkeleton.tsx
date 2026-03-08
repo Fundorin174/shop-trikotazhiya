@@ -1,8 +1,10 @@
+import { memo } from "react";
+
 /**
  * Скелетон-загрузка для сетки каталога.
  * Показывается через Suspense, пока грузятся данные.
  */
-export function CatalogSkeleton() {
+export const CatalogSkeleton = memo(() => {
   return (
     <div>
       <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200" />
@@ -20,4 +22,6 @@ export function CatalogSkeleton() {
       </div>
     </div>
   );
-}
+});
+
+CatalogSkeleton.displayName = "CatalogSkeleton";

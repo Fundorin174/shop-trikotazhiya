@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { formatWidth } from "@/lib/utils";
 import { FABRIC_TYPE_LABELS } from "@/types/product";
 import type { FabricMetadata } from "@/types/product";
@@ -9,7 +10,7 @@ interface ProductSpecsProps {
 /**
  * Таблица характеристик товара (тип, состав, ширина, цвет и т. д.).
  */
-export function ProductSpecs({ meta }: ProductSpecsProps) {
+export const ProductSpecs = memo(({ meta }: ProductSpecsProps) => {
   if (!meta) return null;
 
   const specs = [
@@ -51,9 +52,11 @@ export function ProductSpecs({ meta }: ProductSpecsProps) {
       </dl>
     </div>
   );
-}
+});
 
-function SpecRow({
+ProductSpecs.displayName = "ProductSpecs";
+
+const SpecRow = ({
   label,
   children,
   render,
@@ -61,11 +64,11 @@ function SpecRow({
   label: string;
   children?: React.ReactNode;
   render?: () => React.ReactNode;
-}) {
+}) => {
   return (
     <>
       <dt className="text-gray-500">{label}</dt>
       {render ? render() : <dd className="text-gray-900">{children}</dd>}
     </>
   );
-}
+};

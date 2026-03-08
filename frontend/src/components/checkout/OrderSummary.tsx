@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import type { CdekTariff } from "@/lib/data/cdek";
@@ -25,14 +26,14 @@ interface OrderSummaryProps {
 /**
  * Правая панель — итого по заказу + кнопка оплаты.
  */
-export function OrderSummary({
+export const OrderSummary = memo(({
   items,
   total,
   deliveryTariff,
   isFormValid,
   loading,
   onSubmit,
-}: OrderSummaryProps) {
+}: OrderSummaryProps) => {
   const hasItems = items.length > 0;
 
   const formatItemPrice = (item: OrderSummaryProps["items"][number]) => {
@@ -132,4 +133,6 @@ export function OrderSummary({
       )}
     </aside>
   );
-}
+});
+
+OrderSummary.displayName = "OrderSummary";

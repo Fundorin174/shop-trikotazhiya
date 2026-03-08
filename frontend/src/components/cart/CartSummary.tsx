@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 
@@ -8,7 +9,7 @@ interface CartSummaryProps {
 /**
  * Блок «Итого» + кнопка оформления заказа.
  */
-export function CartSummary({ total }: CartSummaryProps) {
+export const CartSummary = memo(({ total }: CartSummaryProps) => {
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
       <div className="flex items-center justify-between text-lg font-bold text-gray-900">
@@ -26,4 +27,6 @@ export function CartSummary({ total }: CartSummaryProps) {
       </Link>
     </div>
   );
-}
+});
+
+CartSummary.displayName = "CartSummary";

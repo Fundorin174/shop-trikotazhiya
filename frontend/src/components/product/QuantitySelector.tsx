@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { formatPrice } from "@/lib/utils";
 
 interface QuantitySelectorProps {
@@ -17,7 +18,7 @@ interface QuantitySelectorProps {
 /**
  * Селектор количества с кнопками +/− и итогом.
  */
-export function QuantitySelector({
+export const QuantitySelector = memo(({
   quantity,
   setQuantity,
   min,
@@ -29,7 +30,7 @@ export function QuantitySelector({
   increase,
   pricePerUnit,
   currency,
-}: QuantitySelectorProps) {
+}: QuantitySelectorProps) => {
   const totalPrice = Math.round(pricePerUnit * quantity);
 
   return (
@@ -89,4 +90,6 @@ export function QuantitySelector({
       </div>
     </div>
   );
-}
+});
+
+QuantitySelector.displayName = "QuantitySelector";

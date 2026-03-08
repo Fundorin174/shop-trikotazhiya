@@ -13,10 +13,10 @@ interface MobileFilterPanelProps {
  * Рендерит фрагмент из двух блоков, чтобы sticky-родителем
  * был контейнер страницы (с полной высотой контента).
  */
-export function MobileFilterPanel({
+export const MobileFilterPanel = ({
   children,
   hasActiveFilters,
-}: MobileFilterPanelProps) {
+}: MobileFilterPanelProps) => {
   const [open, setOpen] = useState(false);
   const searchParams = useSearchParams();
 
@@ -24,7 +24,7 @@ export function MobileFilterPanel({
     setOpen(false);
   }, [searchParams]);
 
-  function toggle() {
+  const toggle = () => {
     setOpen((prev) => {
       const next = !prev;
       if (next) {
@@ -86,4 +86,4 @@ export function MobileFilterPanel({
       </div>
     </>
   );
-}
+};

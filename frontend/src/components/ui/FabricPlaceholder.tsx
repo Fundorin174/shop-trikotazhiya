@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 /**
  * SVG‑заглушка «Рулон ткани» для товаров без фотографий.
  * На основе контурного изображения рулона с развёрнутым полотном.
@@ -7,7 +9,7 @@ interface FabricPlaceholderProps {
   className?: string;
 }
 
-export function FabricPlaceholder({ className = "" }: FabricPlaceholderProps) {
+export const FabricPlaceholder = memo(({ className = "" }: FabricPlaceholderProps) => {
   return (
     <div
       className={`flex h-full w-full items-center justify-center bg-gray-100 ${className}`}
@@ -111,4 +113,6 @@ c15 -8 40 -27 56 -43 87 -86 71 -235 -33 -308 -37 -26 -51 -30 -111 -30 -60 0
       </svg>
     </div>
   );
-}
+});
+
+FabricPlaceholder.displayName = "FabricPlaceholder";

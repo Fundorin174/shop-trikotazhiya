@@ -24,7 +24,7 @@ interface ProductInfoProps {
  * Блок информации о товаре: цена, характеристики, кнопка «В корзину».
  * Если товар уже в корзине — показывает текущее количество и кнопку «Обновить».
  */
-export function ProductInfo({ product, fabricData }: ProductInfoProps) {
+export const ProductInfo = ({ product, fabricData }: ProductInfoProps) => {
   const meta = fabricData as FabricMetadata | null;
   const variant = product.variants?.[0];
   const price = variant?.prices?.[0];
@@ -156,4 +156,4 @@ export function ProductInfo({ product, fabricData }: ProductInfoProps) {
       </div>
     </div>
   );
-}
+};

@@ -15,7 +15,7 @@ interface AddProductFormProps {
 }
 
 /** Форма ручного добавления товара */
-export function AddProductForm({ token, onCreated }: AddProductFormProps) {
+export const AddProductForm = ({ token, onCreated }: AddProductFormProps) => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -606,4 +606,4 @@ export function AddProductForm({ token, onCreated }: AddProductFormProps) {
       </div>
     </form>
   );
-}
+};

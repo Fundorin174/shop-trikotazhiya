@@ -6,7 +6,7 @@ import { FABRIC_TYPE_LABELS } from "@/types/product";
  * Подвал сайта — навигация, контакты, копирайт.
  * Server Component — не требует клиентского JS.
  */
-export function Footer() {
+export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -119,4 +119,4 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+};

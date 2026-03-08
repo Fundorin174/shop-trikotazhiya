@@ -8,7 +8,7 @@ import { useState, type ReactNode } from "react";
  * - React Query для кеширования запросов к Medusa
  * - (сюда добавляются другие провайдеры: тема, авторизация и т.д.)
  */
-export function Providers({ children }: { children: ReactNode }) {
+export const Providers = ({ children }: { children: ReactNode }) => {
   // Создаём QueryClient внутри useState, чтобы не шарить между запросами (SSR-safe)
   const [queryClient] = useState(
     () =>
@@ -25,4 +25,4 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
-}
+};

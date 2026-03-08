@@ -29,7 +29,7 @@ interface DeliveryStepProps {
 /**
  * Шаг 2 — Доставка (СДЭК ПВЗ / ВКонтакте).
  */
-export function DeliveryStep({
+export const DeliveryStep = ({
   form,
   updateField,
   fieldErrors,
@@ -46,7 +46,7 @@ export function DeliveryStep({
   handleCitySelect,
   handleCityClear,
   goToPayment,
-}: DeliveryStepProps) {
+}: DeliveryStepProps) => {
   return (
     <section
       className={`rounded-lg border p-6 transition-opacity ${
@@ -140,13 +140,13 @@ export function DeliveryStep({
       ) : null}
     </section>
   );
-}
+};
 
 // ============================================
 // Sub-components
 // ============================================
 
-function DeliveryOption({
+const DeliveryOption = ({
   active,
   onClick,
   icon,
@@ -160,7 +160,7 @@ function DeliveryOption({
   title: string;
   subtitle: string;
   activeColor: "primary" | "blue";
-}) {
+}) => {
   const colors = active
     ? activeColor === "primary"
       ? "border-primary-500 bg-primary-50 ring-1 ring-primary-500"
@@ -182,9 +182,9 @@ function DeliveryOption({
       </div>
     </button>
   );
-}
+};
 
-function CdekIcon({ active }: { active: boolean }) {
+const CdekIcon = ({ active }: { active: boolean }) => {
   return (
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
@@ -206,9 +206,9 @@ function CdekIcon({ active }: { active: boolean }) {
       </svg>
     </div>
   );
-}
+};
 
-function VkIcon({ active }: { active: boolean }) {
+const VkIcon = ({ active }: { active: boolean }) => {
   return (
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
@@ -224,9 +224,9 @@ function VkIcon({ active }: { active: boolean }) {
       </svg>
     </div>
   );
-}
+};
 
-function CdekSection({
+const CdekSection = ({
   form,
   updateField,
   fieldErrors,
@@ -246,7 +246,7 @@ function CdekSection({
   handlePvzSelect: (pvz: SelectedPvz, tariff: CdekTariff | null) => void;
   handleCitySelect: (city: { code: number }) => void;
   handleCityClear: () => void;
-}) {
+}) => {
   return (
     <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50/50 p-4">
       {/* Город */}
@@ -298,9 +298,9 @@ function CdekSection({
       )}
     </div>
   );
-}
+};
 
-function VkDeliveryInfo() {
+const VkDeliveryInfo = () => {
   return (
     <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
       <div className="flex items-start gap-3">
@@ -341,4 +341,4 @@ function VkDeliveryInfo() {
       </div>
     </div>
   );
-}
+};

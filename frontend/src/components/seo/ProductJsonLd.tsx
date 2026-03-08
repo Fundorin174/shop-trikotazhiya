@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Product } from "@/types/product";
 import { pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 
@@ -14,7 +15,7 @@ const SITE_URL =
  *
  * @see https://developers.google.com/search/docs/appearance/structured-data/product
  */
-export function ProductJsonLd({ product }: { product: Product }) {
+export const ProductJsonLd = memo(({ product }: { product: Product }) => {
   const variant = product.variants?.[0];
   const priceRaw = variant?.prices?.[0]?.amount;
   const currency = variant?.prices?.[0]?.currency_code?.toUpperCase() || "RUB";
@@ -162,4 +163,6 @@ export function ProductJsonLd({ product }: { product: Product }) {
       />
     </>
   );
-}
+});
+
+ProductJsonLd.displayName = "ProductJsonLd";

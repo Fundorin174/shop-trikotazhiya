@@ -34,11 +34,11 @@ interface CdekPvzPickerProps {
 // Компонент
 // ============================================
 
-export function CdekPvzPicker({
+export const CdekPvzPicker = ({
   cityCode,
   onSelect,
   selectedCode,
-}: CdekPvzPickerProps) {
+}: CdekPvzPickerProps) => {
   const [points, setPoints] = useState<CdekPvzPoint[]>([]);
   const [tariff, setTariff] = useState<CdekTariff | null>(null);
   const [loading, setLoading] = useState(false);
@@ -216,4 +216,4 @@ export function CdekPvzPicker({
       )}
     </div>
   );
-}
+};
