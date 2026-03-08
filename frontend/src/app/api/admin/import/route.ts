@@ -90,6 +90,8 @@ interface ImportProduct {
   video_url?: string;
   discount_percent?: number;
   discount_amount?: number;
+  thumbnail?: string;
+  images?: string[];
 }
 
 interface ImportResult {
@@ -243,6 +245,13 @@ export async function POST(request: NextRequest) {
             },
           ],
         };
+
+        if (item.thumbnail) {
+          productData.thumbnail = item.thumbnail;
+        }
+        if (item.images && item.images.length > 0) {
+          productData.images = item.images.map((url) => ({ url }));
+        }
 
         // Создаём продукт
         const createRes = await medusaApi("POST", "/admin/products", token, productData);
