@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getProductsList } from "@/lib/data/products";
-import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
 import { ProductCardImage } from "@/components/catalog/ProductCardImage";
+import { ProductCardPrice } from "@/components/catalog/ProductCardPrice";
 import { PerPageSelector } from "@/components/catalog/PerPageSelector";
 import type { ProductFilters } from "@/types/product";
 import { FABRIC_TYPE_LABELS, type FabricType } from "@/types/product";
@@ -77,7 +77,7 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
       </div>
 
       {/* Сетка карточек */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 min-[550px]:grid-cols-2 min-[800px]:grid-cols-3 xl:grid-cols-4">
         {products.map((product) => {
           const variant = product.variants?.[0];
           const price = variant?.prices?.[0];
@@ -123,25 +123,9 @@ export async function CatalogGrid({ filters }: CatalogGridProps) {
                   )}
 
                   {/* Цена */}
-                  {price && (() => {
-                    const isFabric = meta?.measurement_unit === "running_meter";
-                    const currentPrice = isFabric
-                      ? pricePerCmToPerMeter(price.amount)
-                      : price.amount;
-                    return (
-                      <p className="mt-2 text-base font-semibold text-primary-800">
-                        {discount > 0 && (
-                          <span className="mr-2 text-sm font-normal text-gray-400 line-through">
-                            {formatPrice(originalPrice(currentPrice, discount), price.currency_code)}
-                          </span>
-                        )}
-                        {formatPrice(currentPrice, price.currency_code)}
-                        <span className="ml-1 text-xs font-normal text-gray-500">
-                          / {meta?.measurement_unit === "running_meter" ? "пог. м" : "шт."}
-                        </span>
-                      </p>
-                    );
-                  })()}
+                  {variant && (
+                    <ProductCardPrice variant={variant} meta={meta} discount={discount} />
+                  )}
                 </div>
               </Link>
             </article>

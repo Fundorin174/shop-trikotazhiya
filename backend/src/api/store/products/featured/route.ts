@@ -13,20 +13,24 @@ import { loadAllProducts } from "../product-cache";
  *   ?limit=8 — количество товаров (по умолчанию 8)
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const limit = parseInt(req.query.limit as string) || 8;
+  try {
+    const limit = parseInt(req.query.limit as string) || 8;
 
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
-  const products = await loadAllProducts(query);
+    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
+    const products = await loadAllProducts(query);
 
-  // Сортируем: скидка по убыванию, затем без скидки
-  const sorted = [...products].sort((a: any, b: any) => {
-    const da = Number(a.metadata?.discount_percent) || 0;
-    const db = Number(b.metadata?.discount_percent) || 0;
-    return db - da;
-  });
+    // Сортируем: скидка по убыванию, затем без скидки
+    const sorted = [...products].sort((a: any, b: any) => {
+      const da = Number(a.metadata?.discount_percent) || 0;
+      const db = Number(b.metadata?.discount_percent) || 0;
+      return db - da;
+    });
 
-  res.json({
-    products: sorted.slice(0, limit),
-    count: sorted.length,
-  });
+    res.json({
+      products: sorted.slice(0, limit),
+      count: sorted.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка при загрузке популярных товаров" });
+  }
 }

@@ -2,17 +2,7 @@
  * Функции для работы с СДЭК API через бэкенд.
  */
 
-const MEDUSA_BACKEND_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
-const PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-
-function getHeaders(): Record<string, string> {
-  const h: Record<string, string> = {};
-  if (PUBLISHABLE_KEY) h["x-publishable-api-key"] = PUBLISHABLE_KEY;
-  return h;
-}
+import { MEDUSA_BACKEND_URL, getStoreHeaders as getHeaders } from "@/lib/client-config";
 
 // ============================================
 // Типы

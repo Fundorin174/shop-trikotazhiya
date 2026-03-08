@@ -2,9 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { getFeaturedProducts } from "@/lib/data/products";
 import { FABRIC_TYPE_LABELS } from "@/types/product";
-import { formatPrice, pricePerCmToPerMeter, originalPrice } from "@/lib/utils";
 import { SafeHtml } from "@/components/ui/SafeHtml";
 import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
+import { ProductCardPrice } from "@/components/catalog/ProductCardPrice";
 
 // SSR — главная страница рендерится на сервере для SEO
 export default async function HomePage() {
@@ -126,7 +126,6 @@ export default async function HomePage() {
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {featuredProducts.map((product) => {
               const variant = product.variants?.[0];
-              const price = variant?.prices?.[0];
               const meta = product.metadata;
               const discount = Number(meta?.discount_percent) || 0;
 
@@ -165,22 +164,9 @@ export default async function HomePage() {
                       )}
 
                       {/* Цена */}
-                      {price && (() => {
-                        const currentPrice = pricePerCmToPerMeter(price.amount);
-                        return (
-                          <p className="mt-2 text-base font-semibold text-primary-800">
-                            {discount > 0 && (
-                              <span className="mr-2 text-sm font-normal text-gray-400 line-through">
-                                {formatPrice(originalPrice(currentPrice, discount), price.currency_code)}
-                              </span>
-                            )}
-                            {formatPrice(currentPrice, price.currency_code)}
-                            <span className="ml-1 text-xs font-normal text-gray-500">
-                              / {meta?.measurement_unit === "running_meter" ? "пог. м" : "шт."}
-                            </span>
-                          </p>
-                        );
-                      })()}
+                      {variant && (
+                        <ProductCardPrice variant={variant} meta={meta} discount={discount} />
+                      )}
                     </div>
                   </Link>
                 </article>

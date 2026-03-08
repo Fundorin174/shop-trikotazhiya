@@ -10,18 +10,17 @@ interface ProductTabsProps {
 }
 
 /**
- * Вкладки карточки товара: Описание, Характеристики, Отзывы.
+ * Вкладки карточки товара: Описание, Характеристики.
  */
 export const ProductTabs = ({ product, fabricData }: ProductTabsProps) => {
   const meta = fabricData as FabricMetadata | null;
-  const [activeTab, setActiveTab] = useState<"description" | "specs" | "reviews">(
+  const [activeTab, setActiveTab] = useState<"description" | "specs">(
     "description"
   );
 
   const tabs = [
     { id: "description" as const, label: "Описание" },
     { id: "specs" as const, label: "Характеристики" },
-    { id: "reviews" as const, label: "Отзывы" },
   ];
 
   return (
@@ -76,13 +75,6 @@ export const ProductTabs = ({ product, fabricData }: ProductTabsProps) => {
         {activeTab === "specs" && (
           <div className="text-sm text-gray-700">
             <p>Подробные характеристики ткани — см. блок выше.</p>
-          </div>
-        )}
-
-        {activeTab === "reviews" && (
-          <div className="text-sm text-gray-500">
-            <p>Отзывов пока нет. Будьте первым!</p>
-            {/* TODO: система отзывов */}
           </div>
         )}
       </div>

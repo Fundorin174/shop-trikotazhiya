@@ -1,6 +1,7 @@
 import { getRelatedProducts } from "@/lib/data/products";
-import { formatPrice } from "@/lib/utils";
 import { FabricPlaceholder } from "@/components/ui/FabricPlaceholder";
+import { ProductCardImage } from "@/components/catalog/ProductCardImage";
+import { ProductCardPrice } from "@/components/catalog/ProductCardPrice";
 import Link from "next/link";
 
 interface RelatedProductsProps {
@@ -26,7 +27,11 @@ export async function RelatedProducts({
       </h2>
       <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {related.map((product) => {
-          const price = product.variants?.[0]?.prices?.[0];
+          const variant = product.variants?.[0];
+          const meta = product.metadata;
+          const discount = Number(meta?.discount_percent) || 0;
+          const imgSrc = product.thumbnail || product.images?.[0]?.url;
+
           return (
             <Link
               key={product.id}
@@ -34,13 +39,8 @@ export async function RelatedProducts({
               className="product-card"
             >
               <div className="aspect-[4/5] overflow-hidden bg-gray-100">
-                {(product.thumbnail || product.images?.[0]?.url) ? (
-                  <img
-                    src={product.thumbnail || product.images?.[0]?.url}
-                    alt={product.title}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
+                {imgSrc ? (
+                  <ProductCardImage src={imgSrc} alt={product.title} />
                 ) : (
                   <FabricPlaceholder />
                 )}
@@ -49,10 +49,8 @@ export async function RelatedProducts({
                 <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
                   {product.title}
                 </h3>
-                {price && (
-                  <p className="mt-1 font-semibold text-primary-800">
-                    {formatPrice(price.amount, price.currency_code)}
-                  </p>
+                {variant && (
+                  <ProductCardPrice variant={variant} meta={meta} discount={discount} />
                 )}
               </div>
             </Link>

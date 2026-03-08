@@ -26,35 +26,39 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * Обновить данные ткани.
  */
 export async function PUT(req: MedusaRequest, res: MedusaResponse) {
-  const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
-  const { id } = req.params;
-  const { supplier_data, ...publicData } = req.body as Record<string, unknown> & {
-    supplier_data?: Record<string, unknown>;
-  };
+  try {
+    const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
+    const { id } = req.params;
+    const { supplier_data, ...publicData } = req.body as Record<string, unknown> & {
+      supplier_data?: Record<string, unknown>;
+    };
 
-  // Обновляем публичные данные
-  const fabric = await fabricService.updateFabricAttributes({
-    id,
-    ...publicData,
-  });
+    // Обновляем публичные данные
+    const fabric = await fabricService.updateFabricAttributes({
+      id,
+      ...publicData,
+    });
 
-  // Обновляем приватные данные поставщика (если переданы)
-  if (supplier_data) {
-    const existing = await fabricService.getWithSupplierData(id);
-    if (existing.supplier_data) {
-      await fabricService.updateFabricSupplierDatas({
-        id: existing.supplier_data.id,
-        ...supplier_data,
-      });
-    } else {
-      await fabricService.createFabricSupplierDatas({
-        ...supplier_data,
-        fabric_attribute_id: id,
-      });
+    // Обновляем приватные данные поставщика (если переданы)
+    if (supplier_data) {
+      const existing = await fabricService.getWithSupplierData(id);
+      if (existing.supplier_data) {
+        await fabricService.updateFabricSupplierDatas({
+          id: existing.supplier_data.id,
+          ...supplier_data,
+        });
+      } else {
+        await fabricService.createFabricSupplierDatas({
+          ...supplier_data,
+          fabric_attribute_id: id,
+        });
+      }
     }
-  }
 
-  res.json({ fabric });
+    res.json({ fabric });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка при обновлении данных ткани" });
+  }
 }
 
 /**
@@ -63,9 +67,13 @@ export async function PUT(req: MedusaRequest, res: MedusaResponse) {
  * Удалить запись ткани (каскадно удалит supplier_data).
  */
 export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
-  const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
-  const { id } = req.params;
+  try {
+    const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
+    const { id } = req.params;
 
-  await fabricService.deleteFabricAttributes(id);
-  res.status(200).json({ id, deleted: true });
+    await fabricService.deleteFabricAttributes(id);
+    res.status(200).json({ id, deleted: true });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка при удалении ткани" });
+  }
 }

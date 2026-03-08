@@ -10,20 +10,24 @@ import type FabricModuleService from "../../../modules/fabric/service";
  * Возвращает ВСЕ данные, включая поставщика и закупочную цену.
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
+  try {
+    const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
 
-  const { limit = "50", offset = "0" } = req.query as Record<string, string>;
+    const { limit = "50", offset = "0" } = req.query as Record<string, string>;
 
-  const [fabrics, count] = await fabricService.listAndCountFabricAttributes(
-    {},
-    {
-      take: parseInt(limit),
-      skip: parseInt(offset),
-      relations: ["supplier_data"], // ← Включаем приватные данные
-    }
-  );
+    const [fabrics, count] = await fabricService.listAndCountFabricAttributes(
+      {},
+      {
+        take: parseInt(limit),
+        skip: parseInt(offset),
+        relations: ["supplier_data"], // ← Включаем приватные данные
+      }
+    );
 
-  res.json({ fabrics, count, limit: parseInt(limit), offset: parseInt(offset) });
+    res.json({ fabrics, count, limit: parseInt(limit), offset: parseInt(offset) });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка при получении списка тканей" });
+  }
 }
 
 /**
@@ -32,16 +36,20 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * Создать новую запись ткани (с опциональными данными поставщика).
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
+  try {
+    const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
 
-  const { supplier_data, ...publicData } = req.body as Record<string, unknown> & {
-    supplier_data?: Record<string, unknown>;
-  };
+    const { supplier_data, ...publicData } = req.body as Record<string, unknown> & {
+      supplier_data?: Record<string, unknown>;
+    };
 
-  const fabric = await fabricService.createFabricWithSupplier(
-    publicData,
-    supplier_data as Record<string, unknown> | undefined
-  );
+    const fabric = await fabricService.createFabricWithSupplier(
+      publicData,
+      supplier_data as Record<string, unknown> | undefined
+    );
 
-  res.status(201).json({ fabric });
+    res.status(201).json({ fabric });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка при создании записи ткани" });
+  }
 }

@@ -15,28 +15,32 @@ import type FabricModuleService from "../../../modules/fabric/service";
  *   ?limit=20&offset=0       — пагинация
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
+  try {
+    const fabricService: FabricModuleService = req.scope.resolve("fabricModuleService");
 
-  const { fabric_type, sku, limit = "20", offset = "0" } = req.query as Record<string, string>;
+    const { fabric_type, sku, limit = "20", offset = "0" } = req.query as Record<string, string>;
 
-  // Формируем фильтр
-  const filters: Record<string, unknown> = {};
-  if (fabric_type) filters.fabric_type = fabric_type;
-  if (sku) filters.sku = sku;
+    // Формируем фильтр
+    const filters: Record<string, unknown> = {};
+    if (fabric_type) filters.fabric_type = fabric_type;
+    if (sku) filters.sku = sku;
 
-  const [fabrics, count] = await fabricService.listAndCountFabricAttributes(
-    filters,
-    {
-      take: parseInt(limit),
-      skip: parseInt(offset),
-      // НЕ загружаем supplier_data — приватные данные
-    }
-  );
+    const [fabrics, count] = await fabricService.listAndCountFabricAttributes(
+      filters,
+      {
+        take: parseInt(limit),
+        skip: parseInt(offset),
+        // НЕ загружаем supplier_data — приватные данные
+      }
+    );
 
-  res.json({
-    fabrics,
-    count,
-    limit: parseInt(limit),
-    offset: parseInt(offset),
-  });
+    res.json({
+      fabrics,
+      count,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка при получении атрибутов тканей" });
+  }
 }

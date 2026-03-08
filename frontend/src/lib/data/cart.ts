@@ -3,21 +3,7 @@
  * Используются в клиентских компонентах.
  */
 
-const MEDUSA_BACKEND_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
-const MEDUSA_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-
-function getHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (MEDUSA_PUBLISHABLE_KEY) {
-    headers["x-publishable-api-key"] = MEDUSA_PUBLISHABLE_KEY;
-  }
-  return headers;
-}
+import { MEDUSA_BACKEND_URL, getStoreHeaders as getHeaders } from "@/lib/client-config";
 
 /**
  * Создать новую корзину.

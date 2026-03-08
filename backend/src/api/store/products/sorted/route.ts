@@ -96,6 +96,7 @@ function displayPriceRubles(product: Record<string, any>): number | null {
 }
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
+  try {
   const {
     sort,
     type,
@@ -231,4 +232,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     totalPages,
     limit,
   });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка при загрузке каталога товаров" });
+  }
 }
